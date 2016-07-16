@@ -27,3 +27,11 @@
 *.exe
 *.out
 *.app
+
+# SCons
+.sconf_temp
+.sconsign.dblite
+build
+test
+config.log
+

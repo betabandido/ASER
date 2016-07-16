@@ -1,0 +1,15 @@
+common_files = Glob('util/*.cc')
+
+if 'test' in COMMAND_LINE_TARGETS:
+  Import('test_env')
+  src_files = Glob('test/*.cc') \
+    + common_files
+  test_env.Program('aser_test', src_files)
+  test = test_env.Command('phony', 'aser_test', './test/aser_test')
+  AlwaysBuild(test)
+else:
+  Import('env')
+  src_files = Glob('*.cc') \
+    + common_files
+  env.Program('aser', src_files)
+
