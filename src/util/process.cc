@@ -66,8 +66,26 @@ void pipe::close(end_point ep) {
   fd_[idx] = -1;
 }
 
+size_t pipe::read(char* buffer, size_t nbyte) {
+  return static_cast<size_t>(error_if_equal(
+      ::read(fd_[0], buffer, nbyte),
+      static_cast<ssize_t>(-1),
+      "Error reading from pipe"));
+}
+
+size_t pipe::write(const char* buffer, size_t nbyte) {
+  return static_cast<size_t>(error_if_equal(
+      ::write(fd_[1], buffer, nbyte),
+      static_cast<ssize_t>(-1),
+      "Error writing to pipe"));
+}
+
 process::~process() {
-  try { kill(); }
+  try {
+    if (state_ == exec_state::READY
+        || state_ == exec_state::RUNNING)
+      kill();
+  }
   catch (...) {}
 }
 
@@ -80,23 +98,75 @@ void process::prepare() {
         % path
         ));
 
-  pipe child_ready_pipe;
+  std::vector<char*> args(args_.size() + 1, nullptr);
+  std::transform(begin(args_), end(args_), begin(args),
+      [](const std::string& s) { return const_cast<char*>(s.c_str()); });
+  assert(args.back() == nullptr);
+
+  //pipe child_ready_pipe;
 
   auto pid = fork();
+  char buf;
+
   switch (pid) {
   case -1:
     libc_error("Error at fork");
     break;
   case 0:
-    throw std::logic_error("Child unexpectedly returned");
+    //child_ready_pipe.close(pipe::end_point::READ_END);
+    go_pipe_.close(pipe::end_point::WRITE_END);
+
+    // TODO check whether we still need the dummy execvp
+    
+    //child_ready_pipe.close(pipe::end_point::WRITE_END);
+    go_pipe_.read(&buf, 1);
+
+    execvp(args[0], &args[0]);
+
+    // We are not supposed to reach here. Doing so, means execvp() failed.
+    libc_error("execvp failed");
   default:
+    go_pipe_.close(pipe::end_point::READ_END);
+    pid_ = pid;
+    state_ = exec_state::READY;
+    // TODO CPU bind ?
     break;
   }
 }
 
+void process::start() {
+  assert(state_ == exec_state::READY);
+
+  go_pipe_.close(pipe::end_point::WRITE_END);
+  state_ = exec_state::RUNNING;
+}
+
+void process::wait() {
+  assert(state_ == exec_state::RUNNING);
+
+  error_if_equal(
+      waitpid(pid_, &termination_status_, 0),
+      -1,
+      "Error waiting for process");
+
+  if (WIFEXITED(termination_status_)
+      || WIFSIGNALED(termination_status_)) {
+    state_ = exec_state::TERMINATED;
+    pid_ = -1;
+  }
+}
+
+int process::termination_status() const {
+  if (state_ != exec_state::TERMINATED)
+    throw std::runtime_error("Process not terminated");
+
+  return termination_status_;
+}
+
 void process::kill() const {
-  if (pid_ == -1)
-    throw std::runtime_error("Process is not running");
+  if (state_ != exec_state::READY
+      && state_ != exec_state::RUNNING)
+    throw std::runtime_error("Process cannot be killed");
 
   switch (kill_mode_) {
     case kill_mode::PROC:

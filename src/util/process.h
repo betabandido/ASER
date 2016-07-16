@@ -12,7 +12,7 @@ namespace util {
 
 /** Class representing a pipe between processes.
  *
- * TODO Implement reading and writing (not needed for the current usage).
+ * TODO Implement reading and writing in a C++ way.
  */
 class pipe {
 public:
@@ -45,11 +45,34 @@ public:
    */
   void close(end_point ep); 
 
+  /** Reads from the pipe.
+   *
+   * @param buffer Buffer where data will be placed.
+   * @param nbyte Number of bytes to read.
+   * @return Number of bytes actually read.
+   */
+  size_t read(char* buffer, size_t nbyte);
+
+  /** Writes to a pipe.
+   *
+   * @param buffer Buffer where data is located.
+   * @param nbyte Number of bytes to write.
+   * @return Number of bytes actually written.
+   */
+  size_t write(const char* buffer, size_t nbyte);
+
 private:
   /** File descriptors. */
   std::array<int, 2> fd_ {{ -1, -1 }};
 };
 
+/** Class responsible to manage the creation of a process and the following
+ * execution of a command.
+ *
+ * TODO Think of the most natural way to signal errors when methods are not
+ * called in the expected order. Should these errors be handled with
+ * assertions of just with regular exceptions?
+ */
 class process {
 public:
   /** The kill mode determines the behavior of kill().
@@ -88,7 +111,22 @@ public:
    */
   pid_t pid() const { return pid_; }
 
+  /** Prepares the execution of the command.
+   *
+   * This method creates a process, and then starts the execution of the
+   * command given in the arguments in the constructor. But, the command
+   * execution is put on hold until start() is called.
+   */
   void prepare();
+
+  /** Starts the execution of the command. */
+  void start();
+
+  /** Waits for process termination. */
+  void wait();
+
+  /** Returns the termination status. */
+  int termination_status() const;
 
   /** Sets the kill mode.
    *
@@ -110,7 +148,8 @@ private:
   enum class exec_state {
     NON_INITIALIZED,
     READY,
-    RUNNING
+    RUNNING,
+    TERMINATED 
   };
 
   /** Arguments to pass to exec(). */
@@ -127,6 +166,9 @@ private:
 
   /** Pipe to notify the child that it should start the execution. */
   pipe go_pipe_;
+
+  /** Termination status. */
+  int termination_status_ { 0 };
 };
 
 } // namespace util
