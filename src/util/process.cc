@@ -1,6 +1,7 @@
 #include "process.h"
 
 #include <cassert>
+#include <sys/wait.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
