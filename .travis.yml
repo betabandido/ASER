@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get install -y libgtest-dev
   - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
   - "ls /usr/local/lib/libg*"
-  - "sudo apt-get search g++"
+  - "sudo apt-cache search g++"
 script: "scons test"
 after_script:
   - "cat config.log"
