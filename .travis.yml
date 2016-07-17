@@ -10,4 +10,4 @@ before_install:
   - "ls /usr/local/lib/libg*"
 script: "scons test"
 after_script:
-  - "cat test/config.log"
+  - "cat config.log"
