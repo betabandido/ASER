@@ -1,4 +1,4 @@
-import os.path
+import os
 
 # TODO use env variables
 GTEST_PATH = '/Users/vjimenez/soft/googletest/googletest/install'
@@ -10,6 +10,9 @@ env = Environment(CXXFLAGS='-std=c++14 -O2',
                            os.path.join(BOOST_PATH, 'include')],
                   LIBPATH=[os.path.join(GTEST_PATH, 'lib'),
                            os.path.join(BOOST_PATH, 'lib')])
+
+if 'CXX' in os.environ:
+  env.Replace(CXX = os.environ['CXX'])
 
 if not env.GetOption('clean'):
   conf = Configure(env)
@@ -32,4 +35,3 @@ if 'test' in COMMAND_LINE_TARGETS:
   SConscript('src/SConscript', variant_dir='test', duplicate=False, exports='test_env')
 else:
   SConscript('src/SConscript', variant_dir='build', duplicate=False, exports='env')
-

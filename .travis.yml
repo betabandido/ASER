@@ -1,0 +1,25 @@
+language: cpp
+compiler:
+  - gcc
+os:
+  - linux
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" ; fi
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - boost-latest
+    packages:
+      - gcc-5
+      - g++-5
+      - libboost1.55-dev
+      - libboost-filesystem1.55-dev
+      - libboost-system1.55-dev
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libgtest-dev
+  - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
+script: "scons test"
+after_script:
+  - "cat config.log"
