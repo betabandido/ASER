@@ -1,12 +1,13 @@
 language: cpp
 compiler:
-  - clang
   - gcc
 os:
   - linux
-  - osx
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libgtest-dev
   - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
+  - "ls /usr/local/lib/libg*"
 script: "scons test"
+after_script:
+  - "cat test/config.log"
