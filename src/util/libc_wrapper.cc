@@ -1,6 +1,6 @@
 #include "libc_wrapper.h"
 
-#include <stdio.h>
+#include <string.h>
 
 namespace util {
 
