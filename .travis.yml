@@ -3,8 +3,6 @@ compiler:
   - gcc
 os:
   - linux
-install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" ; fi
 addons:
   apt:
     sources:
@@ -20,6 +18,11 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libgtest-dev
   - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
+  - sudo pip install cpp-coveralls
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" ; fi
 script: "scons test"
 after_script:
   - "cat config.log"
+after_success:
+  - coveralls --gcov `which gcov-5` --gcov-options '\-lp' -b `pwd` -e .sconf_temp
