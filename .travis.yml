@@ -3,6 +3,8 @@ compiler:
   - gcc
 os:
   - linux
+before_install:
+  - sudo pip install cpp-coveralls
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" ; fi
 addons:
@@ -23,3 +25,5 @@ before_install:
 script: "scons test"
 after_script:
   - "cat config.log"
+after_success:
+  - coveralls --gcov-options '\-lp'
