@@ -25,4 +25,4 @@ script: "scons test"
 after_script:
   - "cat config.log"
 after_success:
-  - coveralls --gcov `which gcov-5` --gcov-options '\-lp'
+  - coveralls --gcov `which gcov-5` --gcov-options '\-lp' -b `pwd`
