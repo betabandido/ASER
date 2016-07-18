@@ -28,12 +28,12 @@ TEST(pipe, read_write) {
 }
 
 TEST(process, constructor) {
-  process p("/usr/bin/false");
+  process p("/usr/bin/env", "false");
   EXPECT_EQ(p.pid(), -1);
 }
 
 TEST(process, move_constructor) {
-  process p("/usr/bin/false");
+  process p("/usr/bin/env", "false");
   process q = std::move(p);
   EXPECT_EQ(q.pid(), -1);
 }
@@ -44,7 +44,7 @@ TEST(process, file_not_found) {
 }
 
 TEST(process, exec) {
-  process p("/usr/bin/false");
+  process p("/usr/bin/env", "false");
   EXPECT_EQ(p.pid(), -1);
   p.prepare();
   EXPECT_NE(p.pid(), -1);
@@ -54,7 +54,7 @@ TEST(process, exec) {
 }
 
 TEST(process, kill_throw) {
-  process p("/usr/bin/false");
+  process p("/usr/bin/env", "false");
   EXPECT_THROW(p.kill(), std::runtime_error);
   p.prepare();
   p.start();
@@ -63,7 +63,7 @@ TEST(process, kill_throw) {
 }
 
 TEST(process, kill) {
-  process p("/bin/sleep", "30");
+  process p("/usr/bin/env", "sleep", "30");
   p.set_kill_mode(process::kill_mode::PROC);
   p.prepare();
   p.start();
