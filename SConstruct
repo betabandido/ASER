@@ -28,6 +28,10 @@ if not env.GetOption('clean'):
       'boost_filesystem', 'boost/filesystem.hpp', 'cxx'):
     print 'Could not find boost::filesystem'
     Exit(1)
+  if not conf.CheckLibWithHeader(
+      'boost_log-mt', 'boost/log/trivial.hpp', 'cxx'):
+    print 'Could not find boost::log'
+    Exit(1)
   env = conf.Finish()
 
 if 'test' in COMMAND_LINE_TARGETS:
