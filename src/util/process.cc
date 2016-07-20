@@ -114,6 +114,10 @@ void process::prepare() {
     libc_error("Error at fork");
     break;
   case 0:
+    // TODO creating a new process group allows kill_group to work safely.
+    // We might want to explore other alternatives, though.
+    setpgid(getpid(), 0);
+
     //child_ready_pipe.close(pipe::end_point::READ_END);
     go_pipe_.close(pipe::end_point::WRITE_END);
 
