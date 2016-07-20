@@ -13,6 +13,7 @@ addons:
       - g++-5
       - libboost1.55-dev
       - libboost-filesystem1.55-dev
+      - libboost-log1.55-dev
       - libboost-system1.55-dev
 before_install:
   - sudo apt-get -qq update
