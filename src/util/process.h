@@ -93,6 +93,12 @@ public:
     , go_pipe_(O_CLOEXEC)
   {}
 
+  // TODO do we really need this constructor?
+  process(const std::vector<std::string>& args)
+    : args_{args}
+    , go_pipe_(O_CLOEXEC)
+  {}
+
   /** Destructor.
    *
    * The process is killed if it is still running.
