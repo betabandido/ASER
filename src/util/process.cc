@@ -185,5 +185,23 @@ void process::kill() const {
   }
 }
 
+void bind_process(pid_t pid, unsigned cpu) {
+#ifdef __linux__
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  CPU_SET(cpu, &mask);
+  error_if_equal(
+      sched_setaffinity(pid, sizeof(mask), &mask),
+      -1,
+      "Error binding process to CPU");
+#else
+  throw std::runtime_error("bind_process() is not supported");
+#endif
+}
+
+void bind_process(const process& p, unsigned cpu) {
+  bind_process(p.pid(), cpu);
+}
+
 } // namespace util
 

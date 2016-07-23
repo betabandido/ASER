@@ -2,6 +2,7 @@
 #define UTIL_PROCESS_H_
 
 #include <fcntl.h>
+#include <sched.h>
 #include <unistd.h>
 
 #include <array>
@@ -176,6 +177,20 @@ private:
   /** Termination status. */
   int termination_status_ { 0 };
 };
+
+/** Binds the process matching the given pid to the given CPU.
+ *
+ * @param pid The process identifier.
+ * @param cpu The virtual CPU.
+ */
+void bind_process(pid_t pid, unsigned cpu);
+
+/** Binds the given process to the given CPU.
+ *
+ * @param pid The process.
+ * @param cpu The virtual CPU.
+ */
+void bind_process(const process& p, unsigned cpu);
 
 } // namespace util
 
