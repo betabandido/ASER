@@ -1,16 +1,18 @@
 import os
 
-# TODO use env variables
-GTEST_PATH = '/Users/vjimenez/soft/googletest/googletest/install'
-BOOST_PATH = '/usr/local/Cellar/boost/1.60.0_2'
-
 env = Environment(CXXFLAGS='-std=c++14 -O2',
                   LINKFLAGS='-O2',
-                  CPPPATH=['src',
-                           os.path.join(GTEST_PATH, 'include'),
-                           os.path.join(BOOST_PATH, 'include')],
-                  LIBPATH=[os.path.join(GTEST_PATH, 'lib'),
-                           os.path.join(BOOST_PATH, 'lib')])
+                  CPPPATH=['src'])
+
+def add_path(env, path):
+  env.Append(CPPPATH = [os.path.join(path, 'include')])
+  env.Append(LIBPATH = [os.path.join(path, 'lib')])
+
+if 'GTEST_PATH' in os.environ:
+  add_path(env, os.environ['GTEST_PATH'])
+
+if 'BOOST_PATH' in os.environ:
+  add_path(env, os.environ['BOOST_PATH'])
 
 if 'CXX' in os.environ:
   env.Replace(CXX = os.environ['CXX'])
