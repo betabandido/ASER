@@ -1,4 +1,5 @@
 import os
+import sys
 
 env = Environment(CXXFLAGS='-std=c++14 -O2',
                   LINKFLAGS='-O2',
@@ -37,6 +38,10 @@ if not env.GetOption('clean'):
         'boost_log', 'boost/log/trivial.hpp', 'cxx'):
       print 'Could not find boost::log'
       Exit(1)
+  if sys.platform == 'linux2' \
+      and not conf.CheckLib('pthread'):
+    print 'Could not find pthread'
+    Exit(1)
   env = conf.Finish()
 
 if 'test' in COMMAND_LINE_TARGETS:
