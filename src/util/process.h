@@ -149,14 +149,15 @@ public:
    * The implementation kills all the processes with the same group identifier.
    * This should be equivalent to killing all the children.
    */
-  void kill() const;
+  void kill();
 
 private:
   enum class exec_state {
     NON_INITIALIZED,
     READY,
     RUNNING,
-    TERMINATED 
+    KILLED,
+    JOINED
   };
 
   /** Arguments to pass to exec(). */
