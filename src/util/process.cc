@@ -12,6 +12,7 @@
 
 namespace fs = boost::filesystem;
 
+namespace aser {
 namespace util {
 
 static void pipe2(int fd[2], int flags) {
@@ -192,10 +193,10 @@ void process::kill() {
 
   switch (kill_mode_) {
     case kill_mode::PROC:
-    ::util::kill(pid_);
+    util::kill(pid_);
     break;
     case kill_mode::TREE:
-    kill_group(pid_);
+    util::kill_group(pid_);
     break;
   default:
     assert(false);
@@ -223,4 +224,5 @@ void bind_process(const process& p, unsigned cpu) {
 }
 
 } // namespace util
+} // namespace aser
 

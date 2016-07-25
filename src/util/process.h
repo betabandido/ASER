@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+namespace aser {
 namespace util {
 
 /** Class representing a pipe between processes.
@@ -194,6 +195,7 @@ void bind_process(pid_t pid, unsigned cpu);
 void bind_process(const process& p, unsigned cpu);
 
 } // namespace util
+} // namespace aser
 
 #endif // UTIL_PROCESS_H_
 

@@ -5,6 +5,7 @@
 
 #include "libc_wrapper.h"
 
+namespace aser {
 namespace util {
 
 void kill(pid_t pid) {
@@ -19,4 +20,5 @@ void kill_group(pid_t pid) {
 }
 
 } // namespace util
+} // namespace aser
 

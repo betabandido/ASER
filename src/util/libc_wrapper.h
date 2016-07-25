@@ -5,6 +5,7 @@
 
 #include <boost/format.hpp>
 
+namespace aser {
 namespace util {
 
 void libc_error(const std::string& msg);
@@ -40,6 +41,7 @@ T error_if_not_equal(T result, T success_result, const std::string& error_msg) {
 }
 
 } // namespace util
+} // namespace aser
 
 #endif // UTIL_LIBC_WRAPPER_H
 

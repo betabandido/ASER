@@ -8,12 +8,12 @@
 
 #include <util/process.h>
 
-using util::process;
+using aser::util::process;
 
 namespace {
 
 TEST(pipe, read_write) {
-  util::pipe p;
+  aser::util::pipe p;
 
   auto read = [&]() {
     char c;
