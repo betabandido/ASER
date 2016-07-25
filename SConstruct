@@ -3,7 +3,7 @@ import sys
 
 env = Environment(CXXFLAGS='-std=c++14 -O2',
                   LINKFLAGS='-O2',
-                  CPPPATH=['src'])
+                  CPPPATH=['../src'])
 
 def add_path(env, path):
   env.Append(CPPPATH = [os.path.join(path, 'include')])
@@ -48,7 +48,6 @@ if 'test' in COMMAND_LINE_TARGETS:
   test_env = env.Clone()
   test_env.Replace(CXXFLAGS = '-std=c++14 -g -O0 --coverage')
   test_env.Replace(LINKFLAGS = '-g -O0 --coverage')
-  test_env.Append(CPPPATH = ['../src'])
   SConscript('src/SConscript', variant_dir='test', duplicate=False, exports='test_env')
 else:
   SConscript('src/SConscript', variant_dir='build', duplicate=False, exports='env')
