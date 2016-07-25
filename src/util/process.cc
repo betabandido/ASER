@@ -162,13 +162,18 @@ void process::start() {
 }
 
 void process::wait() {
-  assert(state_ == exec_state::RUNNING
+  assert(state_ == exec_state::READY
+      || state_ == exec_state::RUNNING
       || state_ == exec_state::KILLED);
+
+  LOG(boost::format("Waiting for process %1%") % pid_);
 
   error_if_equal(
       waitpid(pid_, &termination_status_, 0),
       -1,
       "Error waiting for process");
+
+  LOG(boost::format("Process %1% has finished") % pid_);
 
   if (WIFEXITED(termination_status_)
       || WIFSIGNALED(termination_status_)) {
@@ -185,11 +190,25 @@ int process::termination_status() const {
 }
 
 void process::kill() {
-  if (state_ != exec_state::READY
-      && state_ != exec_state::RUNNING)
+  // XXX There are situations where it is handy not to throw an exception if
+  // a process has already been killed/joined -- for instance when a processes
+  // completes its execution, and then we proceed to kill all managed threads
+  // for cleanup purposes. But it might just be better to throw the exception
+  // anyway, and force the caller to catch the exception.
+  if (state_ == exec_state::KILLED
+      || state_ == exec_state::JOINED)
+    return;
+
+  if (state_ == exec_state::NON_INITIALIZED)
     throw std::runtime_error("Process cannot be killed");
 
   LOG(boost::format("Killing process %1%") % pid_);
+
+  // State is changed before trying to kill the process, since recovering
+  // from an error when trying to kill a process is difficult. Even if kill()
+  // or kill_group() fail, we consider the process to be killed.
+  // TODO Is there a better way to do this?
+  state_ = exec_state::KILLED;
 
   switch (kill_mode_) {
     case kill_mode::PROC:
@@ -201,8 +220,6 @@ void process::kill() {
   default:
     assert(false);
   }
-
-  state_ = exec_state::KILLED;
 }
 
 void bind_process(pid_t pid, unsigned cpu) {

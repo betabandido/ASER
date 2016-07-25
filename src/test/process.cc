@@ -65,7 +65,8 @@ TEST(process, kill_throw) {
   p.prepare();
   p.start();
   p.wait();
-  EXPECT_THROW(p.kill(), std::runtime_error);
+// XXX See note on process::kill().
+//  EXPECT_THROW(p.kill(), std::runtime_error);
 }
 
 TEST(process, kill) {
