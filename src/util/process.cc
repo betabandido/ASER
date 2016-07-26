@@ -8,9 +8,11 @@
 
 #include "kill.h"
 #include "libc_wrapper.h"
+#include "log.h"
 
 namespace fs = boost::filesystem;
 
+namespace aser {
 namespace util {
 
 static void pipe2(int fd[2], int flags) {
@@ -19,12 +21,18 @@ static void pipe2(int fd[2], int flags) {
 #elif defined __APPLE__
   error_if_not_equal(::pipe(fd), 0, "Error at pipe");
   for (int i = 0; i < 2; ++i) {
-    auto curr_flags = error_if_equal(
+    auto fcntl_flags = error_if_equal(
         fcntl(fd[i], F_GETFD),
         -1,
         "Error getting flags");
+
+    if (flags & O_CLOEXEC)
+      fcntl_flags |= FD_CLOEXEC;
+    else
+      throw std::invalid_argument("Flags not supported");
+
     error_if_equal(
-        fcntl(fd[i], F_SETFD, curr_flags | flags),
+        fcntl(fd[i], F_SETFD, fcntl_flags),
         -1,
         "Error settings flags");
   }
@@ -86,12 +94,17 @@ process::~process() {
     if (state_ == exec_state::READY
         || state_ == exec_state::RUNNING)
       kill();
+
+    if (state_ == exec_state::KILLED)
+      wait();
   }
   catch (...) {}
 }
 
 void process::prepare() {
   assert(state_ == exec_state::NON_INITIALIZED);
+
+  LOG(boost::format("Executing %1%") % args_[0]);
 
   fs::path path(args_[0]);
   if (!fs::exists(path))
@@ -122,7 +135,7 @@ void process::prepare() {
     go_pipe_.close(pipe::end_point::WRITE_END);
 
     // TODO check whether we still need the dummy execvp
-    
+
     //child_ready_pipe.close(pipe::end_point::WRITE_END);
     go_pipe_.read(&buf, 1);
 
@@ -142,48 +155,91 @@ void process::prepare() {
 void process::start() {
   assert(state_ == exec_state::READY);
 
+  LOG(boost::format("Starting process %1%") % pid_);
+
   go_pipe_.close(pipe::end_point::WRITE_END);
   state_ = exec_state::RUNNING;
 }
 
 void process::wait() {
-  assert(state_ == exec_state::RUNNING);
+  assert(state_ == exec_state::READY
+      || state_ == exec_state::RUNNING
+      || state_ == exec_state::KILLED);
+
+  LOG(boost::format("Waiting for process %1%") % pid_);
 
   error_if_equal(
       waitpid(pid_, &termination_status_, 0),
       -1,
       "Error waiting for process");
 
+  LOG(boost::format("Process %1% has finished") % pid_);
+
   if (WIFEXITED(termination_status_)
       || WIFSIGNALED(termination_status_)) {
-    state_ = exec_state::TERMINATED;
+    state_ = exec_state::JOINED;
     pid_ = -1;
   }
 }
 
 int process::termination_status() const {
-  if (state_ != exec_state::TERMINATED)
+  if (state_ != exec_state::JOINED)
     throw std::runtime_error("Process not terminated");
 
   return termination_status_;
 }
 
-void process::kill() const {
-  if (state_ != exec_state::READY
-      && state_ != exec_state::RUNNING)
+void process::kill() {
+  // XXX There are situations where it is handy not to throw an exception if
+  // a process has already been killed/joined -- for instance when a processes
+  // completes its execution, and then we proceed to kill all managed threads
+  // for cleanup purposes. But it might just be better to throw the exception
+  // anyway, and force the caller to catch the exception.
+  if (state_ == exec_state::KILLED
+      || state_ == exec_state::JOINED)
+    return;
+
+  if (state_ == exec_state::NON_INITIALIZED)
     throw std::runtime_error("Process cannot be killed");
+
+  LOG(boost::format("Killing process %1%") % pid_);
+
+  // State is changed before trying to kill the process, since recovering
+  // from an error when trying to kill a process is difficult. Even if kill()
+  // or kill_group() fail, we consider the process to be killed.
+  // TODO Is there a better way to do this?
+  state_ = exec_state::KILLED;
 
   switch (kill_mode_) {
     case kill_mode::PROC:
-    ::util::kill(pid_);
+    util::kill(pid_);
     break;
     case kill_mode::TREE:
-    kill_group(pid_);
+    util::kill_group(pid_);
     break;
   default:
     assert(false);
   }
 }
 
+void bind_process(pid_t pid, unsigned cpu) {
+#ifdef __linux__
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  CPU_SET(cpu, &mask);
+  error_if_equal(
+      sched_setaffinity(pid, sizeof(mask), &mask),
+      -1,
+      "Error binding process to CPU");
+#else
+  throw std::runtime_error("bind_process() is not supported");
+#endif
+}
+
+void bind_process(const process& p, unsigned cpu) {
+  bind_process(p.pid(), cpu);
+}
+
 } // namespace util
+} // namespace aser
 

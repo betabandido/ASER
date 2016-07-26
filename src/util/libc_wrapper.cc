@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+namespace aser {
 namespace util {
 
 void libc_error(const std::string& msg) {
@@ -12,4 +13,5 @@ void libc_error(const std::string& msg) {
 }
 
 } // namespace util
+} // namespace aser
 

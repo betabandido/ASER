@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 
+namespace aser {
 namespace util {
 
 /** Kills a process.
@@ -23,6 +24,7 @@ void kill(pid_t pid);
 void kill_group(pid_t pid);
 
 } // namespace util
+} // namespace aser
 
 #endif // UTIL_KILL_H_
 

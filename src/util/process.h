@@ -2,12 +2,14 @@
 #define UTIL_PROCESS_H_
 
 #include <fcntl.h>
+#include <sched.h>
 #include <unistd.h>
 
 #include <array>
 #include <string>
 #include <vector>
 
+namespace aser {
 namespace util {
 
 /** Class representing a pipe between processes.
@@ -148,14 +150,15 @@ public:
    * The implementation kills all the processes with the same group identifier.
    * This should be equivalent to killing all the children.
    */
-  void kill() const;
+  void kill();
 
 private:
   enum class exec_state {
     NON_INITIALIZED,
     READY,
     RUNNING,
-    TERMINATED 
+    KILLED,
+    JOINED
   };
 
   /** Arguments to pass to exec(). */
@@ -177,7 +180,22 @@ private:
   int termination_status_ { 0 };
 };
 
+/** Binds the process matching the given pid to the given CPU.
+ *
+ * @param pid The process identifier.
+ * @param cpu The virtual CPU.
+ */
+void bind_process(pid_t pid, unsigned cpu);
+
+/** Binds the given process to the given CPU.
+ *
+ * @param pid The process.
+ * @param cpu The virtual CPU.
+ */
+void bind_process(const process& p, unsigned cpu);
+
 } // namespace util
+} // namespace aser
 
 #endif // UTIL_PROCESS_H_
 
