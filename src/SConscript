@@ -1,4 +1,5 @@
-common_files = Glob('util/*.cc')
+common_files = Glob('core/*.cc') \
+  + Glob('util/*.cc')
 
 if 'test' in COMMAND_LINE_TARGETS:
   Import('test_env')
