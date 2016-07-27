@@ -18,9 +18,6 @@ TEST(condition, basic) {
   std::thread t1([&] {
       std::this_thread::sleep_for(1s);
       cond.notify();
-
-      std::this_thread::sleep_for(1s);
-      cond.notify();
   });
 
   std::thread t2([&] {
@@ -28,11 +25,6 @@ TEST(condition, basic) {
       auto t = chrono::system_clock::now();
       EXPECT_GT(t - t0, 1s);
       EXPECT_LT(t - t0, 1200ms);
-
-      cond.wait();
-      t = chrono::system_clock::now();
-      EXPECT_GT(t - t0, 2s);
-      EXPECT_LT(t - t0, 2200ms);
   });
 
   t1.join();

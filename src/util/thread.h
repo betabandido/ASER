@@ -11,10 +11,7 @@ namespace util {
 
 /** Thread-safe boolean condition.
  *
- * It allows for one thread to block until the condition becomes ready. Once
- * the condition becomes ready and the thread waiting for the condition
- * unblocks, a thread can block again waiting for the condition to become
- * ready again.
+ * It allows for threads to block until the condition becomes ready.
  */
 class condition {
 public:
@@ -22,24 +19,21 @@ public:
   void wait() {
     std::unique_lock<std::mutex> lock(mutex_);
     cv_.wait(lock, [&] { return ready_; });
-    ready_ = false;
   }
 
   /** Marks the condition as ready and notifies the listener. */
   void notify() {
-    set_ready();
-    cv_.notify_one();
+    {
+    std::lock_guard<std::mutex> lock(mutex_);
+    ready_ = true;
+    }
+    cv_.notify_all();
   }
 
 private:
   bool ready_ { false };
   std::condition_variable cv_;
   std::mutex mutex_;
-
-  void set_ready() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    ready_ = true;
-  }
 };
 
 /** Checks whether a future is ready without blocking.
