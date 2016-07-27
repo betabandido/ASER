@@ -29,11 +29,16 @@ void process_monitor::check_duplicated_pid(pid_t pid) const {
 std::pair<pid_t, int> process_monitor::wait_for_any() {
   process_ending_.wait();
 
+  LOG("wait_for_any() after wait()");
+
   // XXX We might want to avoid this loop for performance reasons.
   for (auto it = begin(status_); it != end(status_); ++it) {
     if (util::is_ready(it->second)) {
       auto result = std::make_pair(it->first, it->second.get());
       status_.erase(it);
+      LOG(boost::format("wait_for_any() found %1%, %2%")
+          % result.first
+          % result.second);
       return result;
     }
   }
@@ -61,6 +66,7 @@ int process_monitor::wait_for_pid(pid_t pid) {
 int process_monitor::wait_for_process(process_ptr process) {
   process->wait();
   auto status = process->termination_status();
+  LOG(boost::format("Notifying process %1% termination") % process->pid());
   process_ending_.notify();
   return status;
 }
