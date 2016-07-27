@@ -91,6 +91,8 @@ size_t pipe::write(const char* buffer, size_t nbyte) {
 
 process::~process() {
   try {
+    LOG("process::~process()");
+
     if (state_ == exec_state::READY
         || state_ == exec_state::RUNNING)
       kill();
@@ -117,7 +119,7 @@ void process::prepare() {
       [](const std::string& s) { return const_cast<char*>(s.c_str()); });
   assert(args.back() == nullptr);
 
-  //pipe child_ready_pipe;
+  pipe child_ready_pipe;
 
   auto pid = fork();
   char buf;
@@ -127,27 +129,26 @@ void process::prepare() {
     libc_error("Error at fork");
     break;
   case 0:
-    // TODO creating a new process group allows kill_group to work safely.
+    // XXX creating a new process group allows kill_group to work safely.
     // We might want to explore other alternatives, though.
     setpgid(getpid(), 0);
-
-    //child_ready_pipe.close(pipe::end_point::READ_END);
+    child_ready_pipe.close(pipe::end_point::READ_END);
     go_pipe_.close(pipe::end_point::WRITE_END);
-
-    // TODO check whether we still need the dummy execvp
-
-    //child_ready_pipe.close(pipe::end_point::WRITE_END);
+    child_ready_pipe.close(pipe::end_point::WRITE_END);
     go_pipe_.read(&buf, 1);
 
+    LOG("About to call execvp");
     execvp(args[0], &args[0]);
 
     // We are not supposed to reach here. Doing so, means execvp() failed.
     libc_error("execvp failed");
   default:
+    child_ready_pipe.close(pipe::end_point::WRITE_END);
     go_pipe_.close(pipe::end_point::READ_END);
+    child_ready_pipe.read(&buf, 1);
+    child_ready_pipe.close(pipe::end_point::READ_END);
     pid_ = pid;
     state_ = exec_state::READY;
-    // TODO CPU bind ?
     break;
   }
 }
@@ -157,6 +158,8 @@ void process::start() {
 
   LOG(boost::format("Starting process %1%") % pid_);
 
+  char buf = 0;
+  go_pipe_.write(&buf, 1);
   go_pipe_.close(pipe::end_point::WRITE_END);
   state_ = exec_state::RUNNING;
 }
@@ -178,7 +181,7 @@ void process::wait() {
   if (WIFEXITED(termination_status_)
       || WIFSIGNALED(termination_status_)) {
     state_ = exec_state::JOINED;
-    pid_ = -1;
+    //pid_ = -1;
   }
 }
 
