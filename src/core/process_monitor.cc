@@ -33,6 +33,7 @@ std::pair<pid_t, int> process_monitor::wait_for_any() {
 
   // XXX We might want to avoid this loop for performance reasons.
   for (auto it = begin(status_); it != end(status_); ++it) {
+    LOG(boost::format("wait_for_any(), is_ready %1%") % it->first);
     if (util::is_ready(it->second)) {
       auto result = std::make_pair(it->first, it->second.get());
       status_.erase(it);
