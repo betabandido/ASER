@@ -27,24 +27,15 @@ void process_monitor::check_duplicated_pid(pid_t pid) const {
 }
 
 std::pair<pid_t, int> process_monitor::wait_for_any() {
-  process_ending_.wait();
+  auto pid = ended_process_queue_.pop();
+  auto it = status_.find(pid);
+  assert(it != end(status_));
 
-  LOG("wait_for_any() after wait()");
+  LOG(boost::format("wait_for_any: %1% finished") % pid);
 
-  // XXX We might want to avoid this loop for performance reasons.
-  for (auto it = begin(status_); it != end(status_); ++it) {
-    LOG(boost::format("wait_for_any(), is_ready %1%") % it->first);
-    if (util::is_ready(it->second)) {
-      auto result = std::make_pair(it->first, it->second.get());
-      status_.erase(it);
-      LOG(boost::format("wait_for_any() found %1%, %2%")
-          % result.first
-          % result.second);
-      return result;
-    }
-  }
-
-  throw std::runtime_error("No processes to wait for");
+  auto result = std::make_pair(pid, it->second.get());
+  status_.erase(it);
+  return result;
 }
 
 int process_monitor::wait_for_pid(pid_t pid) {
@@ -60,15 +51,14 @@ int process_monitor::wait_for_pid(pid_t pid) {
   if (res != pid)
     throw std::runtime_error("Unexpected error");
 
-  process_ending_.notify();
+  ended_process_queue_.push(pid);
   return status;
 }
 
 int process_monitor::wait_for_process(process_ptr process) {
   process->wait();
   auto status = process->termination_status();
-  LOG(boost::format("Notifying process %1% termination") % process->pid());
-  process_ending_.notify();
+  ended_process_queue_.push(process->pid());
   return status;
 }
 

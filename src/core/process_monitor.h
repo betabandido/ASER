@@ -6,7 +6,7 @@
 #include <future>
 #include <map>
 
-#include <util/thread.h>
+#include <util/concurrent_queue.h>
 
 namespace aser {
 
@@ -45,8 +45,8 @@ private:
   /** Map containing the (future) status for every pid. */
   std::map<pid_t, std::future<int>> status_;
 
-  /** Condition to notify when a process ends its execution. */
-  util::condition process_ending_;
+  /** Queue containing the processes that ended their execution. */
+  util::concurrent_queue<pid_t> ended_process_queue_;
 
   void check_duplicated_pid(pid_t pid) const;
 
