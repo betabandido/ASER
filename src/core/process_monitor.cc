@@ -1,5 +1,7 @@
 #include "process_monitor.h"
 
+#include <sys/wait.h>
+
 #include <util/log.h>
 #include <util/process.h>
 
