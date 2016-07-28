@@ -23,6 +23,8 @@ public:
 
   process_monitor() {}
 
+  ~process_monitor();
+
   /** Adds a process given its pid.
    *
    * @param pid The process identifier.
