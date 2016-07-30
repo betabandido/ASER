@@ -6,8 +6,10 @@
 
 namespace aser {
 
-simple_manager::simple_manager(const std::vector<benchmark>& benchs)
-  : exec_manager()
+simple_manager::simple_manager(
+    const boost::property_tree::ptree& properties,
+    const std::vector<benchmark>& benchs)
+  : exec_manager(properties)
   , benchs_(benchs)
   , processes_(benchs.size())
 {}
@@ -25,8 +27,10 @@ void simple_manager::start_impl() {
   for (auto& p : processes_)
     p->start();
 
+  start_exec_monitor();
   monitor.wait_for_any();
   execution_end();
+  join_exec_monitor();
 
   LOG("Cleaning up");
 

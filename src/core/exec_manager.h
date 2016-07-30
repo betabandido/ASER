@@ -4,17 +4,22 @@
 #include <atomic>
 #include <memory>
 
+#include <boost/property_tree/ptree.hpp>
+
 namespace aser {
 
-//class execution_monitor;
+class exec_monitor;
 
 /** Base class to manage the execution of benchmarks. */
 class exec_manager {
 public:
-  /** Constructor. */
-  exec_manager() {}
+  /** Constructor.
+   *
+   * @param properties Configuration properties.
+   */
+  exec_manager(const boost::property_tree::ptree& properties);
 
-  virtual ~exec_manager() {}
+  virtual ~exec_manager();
 
   /** Starts the execution. */
   void start();
@@ -34,9 +39,13 @@ protected:
     execution_ended_ = true;
   }
 
-private:
-//  typedef std::unique_ptr<execution_monitor> execution_monitor_ptr;
+  void start_exec_monitor();
+  void join_exec_monitor();
 
+private:
+  typedef std::unique_ptr<exec_monitor> exec_monitor_ptr;
+
+  exec_monitor_ptr exec_monitor_;
   std::atomic<bool> execution_ended_ { false };
 
   exec_manager(const exec_manager&) = delete;

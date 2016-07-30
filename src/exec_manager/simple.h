@@ -27,7 +27,9 @@ public:
    *
    * @param benchs Vector containing the benchmarks to execute.
    */
-  simple_manager(const std::vector<benchmark>& benchs);
+  simple_manager(
+      const boost::property_tree::ptree& properties,
+      const std::vector<benchmark>& benchs);
 
 private:
   typedef std::shared_ptr<util::process> process_ptr;

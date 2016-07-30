@@ -1,5 +1,6 @@
 common_files = Glob('core/*.cc') \
   + Glob('exec_manager/*.cc') \
+  + Glob('exec_monitor/*.cc') \
   + Glob('util/*.cc')
 
 if 'test' in COMMAND_LINE_TARGETS:
