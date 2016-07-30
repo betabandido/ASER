@@ -7,6 +7,13 @@
 
 namespace aser {
 
+process_monitor::~process_monitor() {
+  for (auto& s : status_) {
+    try { s.second.get(); }
+    catch (...) {}
+  } 
+}
+
 void process_monitor::add_pid(pid_t pid) {
   check_duplicated_pid(pid);
   status_[pid] = std::async(
