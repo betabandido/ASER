@@ -44,7 +44,7 @@ TEST(factory, basic) {
 }
 
 TEST(factory_death, not_registered) {
-  EXPECT_DEATH(create<base>("error"), "Assertion failed");
+  EXPECT_DEATH(create<base>("error"), "Assertion.*failed");
 }
 
 } // namespace
