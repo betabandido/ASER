@@ -6,7 +6,7 @@ ASER is a runtime to do research on adaptive solutions for optimizing the usage 
 
 Execution managers and execution monitors are the two main constructs in ASER. Execution managers are responsible of managing all the life-cycle of the processes belonging to the workload to be monitored---from the creation of these processes to detecting when they have finished. Execution monitors are used to perform a diverse set of tasks that monitor and control the processes being executed. Users can extend the base execution monitor to implement their custom optimization policies.
 
-## Minimalistic Example
+## Minimalistic example
 
 ```
 pt::ptree properties;
@@ -35,4 +35,13 @@ The contents of the configuration file (config.json) are:
 ```
 
 ASER will create an execution monitor belonging to type "simple", with a sampling period of 500 ms. This simplistic monitor does nothing but run a loop, sleeping for 500 ms on each iteration.
+
+## Build instructions
+
+ASER requires a relatively recent compiler with C++14 support. `CXX` flag can be used to specify the actual C++ compiler to use. The following libraries are also required:
+
+- [Boost](http://www.boost.org)
+- [Google Test](https://github.com/google/googletest) (for testing purposes only)
+
+The building process uses [SCons](http://scons.org). If the required libraries are installed in default locations, just running SCons on the root directory will build ASER. Otherwise, `BOOST_PATH` and `GTEST_PATH` flags should be used to specify the paths were Boost and Google Test are installed. The resulting binary will be placed in a directory named `build`. In order to build and run the test cases, use `scons test` instead.
 
