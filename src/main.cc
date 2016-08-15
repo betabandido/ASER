@@ -4,7 +4,7 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include <exec_manager/simple.h> // TODO remove
+#include <core/exec_manager.h>
 #include <util/factory.h>
 
 namespace po = boost::program_options;
