@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include <core/benchmark.h>
 #include <core/exec_manager.h>
 
 namespace aser {
@@ -18,18 +19,11 @@ class process;
  */
 class simple_manager : public exec_manager {
 public:
-  struct benchmark {
-    unsigned id;
-    std::vector<std::string> args;
-  };
-
   /** Constructor.
    *
-   * @param benchs Vector containing the benchmarks to execute.
+   * @param properties Configuration properties.
    */
-  simple_manager(
-      const boost::property_tree::ptree& properties,
-      const std::vector<benchmark>& benchs);
+  simple_manager(const boost::property_tree::ptree& properties);
 
 private:
   typedef std::shared_ptr<util::process> process_ptr;

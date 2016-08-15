@@ -1,18 +1,29 @@
 #include "simple.h"
 
+#include <core/benchmark.h>
 #include <core/process_monitor.h>
+#include <util/factory.h>
 #include <util/log.h>
+#include <util/parse.h>
 #include <util/process.h>
+
+namespace pt = boost::property_tree;
 
 namespace aser {
 
-simple_manager::simple_manager(
-    const boost::property_tree::ptree& properties,
-    const std::vector<benchmark>& benchs)
+util::registar<exec_manager, simple_manager, const pt::ptree&>
+  simple_manager_registar("simple");
+
+simple_manager::simple_manager(const pt::ptree& properties)
   : exec_manager(properties)
-  , benchs_(benchs)
-  , processes_(benchs.size())
-{}
+  , benchs_(util::parse_vector<benchmark>(
+        properties.get_child("exec_manager.benchmarks")))
+  , processes_(benchs_.size())
+{
+  unsigned id = 0;
+  for (auto& b : benchs_)
+    b.id = id++;
+}
 
 void simple_manager::start_impl() {
   LOG("Starting execution");
