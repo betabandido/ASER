@@ -14,17 +14,26 @@ namespace {
 TEST(simple_manager, basic) {
   pt::ptree properties;
   std::istringstream json_properties(
-      "{ \"exec_monitor\": {"
-          "\"type\": \"simple\","
-          "\"sampling_length\": 500"
-      "}}");
+      "{"
+      "  \"exec_manager\": {"
+      "    \"benchmarks\": ["
+      "      {"
+      "        \"cmd\": \"/usr/bin/env sleep 5\","
+      "        \"name\": \"sleep5\""
+      "      },"
+      "      {"
+      "        \"cmd\": \"/usr/bin/env sleep 2\","
+      "        \"name\": \"sleep2\""
+      "      }"
+      "    ]"
+      "  },"
+      "  \"exec_monitor\": {"
+      "    \"type\": \"simple\","
+      "    \"sampling_length\": 500"
+      "  }"
+      "}");
   pt::read_json(json_properties, properties);
-
-  std::vector<simple_manager::benchmark> benchs = {
-    {0, {"/usr/bin/env", "sleep", "5"}},
-    {1, {"/usr/bin/env", "sleep", "2"}}
-  };
-  simple_manager exec_mgr(properties, benchs);
+  simple_manager exec_mgr(properties);
   exec_mgr.start();
 }
 
