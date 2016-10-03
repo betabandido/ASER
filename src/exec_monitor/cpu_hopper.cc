@@ -1,5 +1,6 @@
 #include "cpu_hopper.h"
 
+#include <iostream>
 #include <thread>
 
 #include <core/exec_manager.h>
@@ -54,7 +55,16 @@ void cpu_hopper::add_process(pid_t pid) {
 }
 
 void cpu_hopper::bind_process(pid_t pid, unsigned cpu) {
-  util::bind_process(pid, cpu);
+  try {
+    util::bind_process(pid, cpu);
+  } catch (const std::exception& e) {
+    // TODO can we check whether the error actually took place after the
+    // process ended its execution? Otherwise, it would be a real error.
+    // TODO alternatively, we can log this as a potential real error, instead
+    // of using the usual call to LOG, which it is used for debug purposes.
+    std::cerr << boost::format("Error binding process: %1%\n") % e.what();
+  }
+
   cpu_mapping_[pid] = cpu;
   allocated_cpus_[cpu] = true;
 }
