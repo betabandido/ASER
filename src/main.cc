@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
   pt::ptree properties;
   pt::read_json(config_file, properties);
 
-  // TODO
   auto exec_manager = aser::util::create<aser::exec_manager>(
       properties.get<std::string>("exec_manager.type"),
       static_cast<const pt::ptree&>(properties));

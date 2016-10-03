@@ -36,5 +36,17 @@ TEST(concurrent_queue, mixed) {
   t2.join();
 }
 
+TEST(concurrent_queue, timeout) {
+  aser::util::concurrent_queue<int> queue;
+
+  auto res = queue.pop(std::chrono::seconds(1));
+  EXPECT_FALSE(res.first);
+
+  queue.push(1234);
+  res = queue.pop(std::chrono::seconds(1));
+  EXPECT_TRUE(res.first);
+  EXPECT_EQ(res.second, 1234);
+}
+
 } // namespace
 

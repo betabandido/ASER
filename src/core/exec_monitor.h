@@ -1,9 +1,12 @@
 #ifndef CORE_EXEC_MONITOR_H_
 #define CORE_EXEC_MONITOR_H_
 
+#include <unistd.h>
+
 #include <thread>
 
-//#include <core/thread.h>
+#include <core/exec_event.h>
+#include <util/concurrent_queue.h>
 
 namespace aser {
 
@@ -20,11 +23,17 @@ public:
 
   virtual ~exec_monitor() = default;
 
+  /** Initializes the execution monitor. */
   void initialize();
+
+  /** Finalizes the execution monitor. */
   void finalize();
 
-  void before_exec();
-  void after_exec();
+  /** Prepares the execution monitor.
+   *
+   * Once the execution is ready to start, this method allows the execution
+   * monitor to become ready to monitor the execution. */
+  void prepare();
 
   /** Starts the execution monitor. */
   void start();
@@ -32,26 +41,32 @@ public:
   /** Waits until the execution monitor finishes. */
   void join();
 
-//  void thread_created(const thread& thread);
-//  void thread_ended(const thread& thread);
+  /** Enqueues an execution event.
+   *
+   * @param event The execution event.
+   */
+  void enqueue_event(exec_event event);
+
+  /** Handles an execution event.
+   *
+   * @param event The execution event.
+   */
+  void event_handler(const exec_event& event);
 
 protected:
-//  exec_manager& get_exec_manager() const {
-//    return exec_manager_;
-//  }
+  /** Event queue. */
+  util::concurrent_queue<exec_event> event_queue_;
 
   virtual void initialize_impl() {}
   virtual void finalize_impl() {}
-  virtual void before_exec_impl() {}
-  virtual void after_exec_impl() {}
+  virtual void prepare_impl() {}
 
   /** Method that should be implemented in derived monitors with the actual
    * logic that will monitor the execution.
    */
   virtual void loop_impl() = 0;
 
-//  virtual void thread_created_impl(const thread& thread) = 0;
-//  virtual void thread_ended_impl(const thread& thread) = 0;
+  virtual void event_handler_impl(const exec_event& event) {}
 
 private:
   exec_manager& exec_manager_;
@@ -62,6 +77,8 @@ private:
   exec_monitor(exec_monitor&&) = delete;
   exec_monitor& operator=(const exec_monitor&) = delete;
   exec_monitor& operator=(exec_monitor&&) = delete;
+
+  void process_events();
 };
 
 } // namespace aser

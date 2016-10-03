@@ -52,6 +52,31 @@ public:
     return value;
   }
 
+  /** Pops the value at the front of the queue.
+   *
+   * If the queue is empty, the caller will block until an element becomes
+   * available, or until the timeout expires.
+   *
+   * @param timeout Timeout to wait before the call fails.
+   * @return A pair consisting of a boolean indicating whether the call
+   *     succeeded (i.e., an element was found), and the element found (only
+   *     valid if the call succeeded).
+   */
+  template<class Rep, class Period>
+  std::pair<bool, value_type> pop(
+      const std::chrono::duration<Rep, Period>& timeout) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    bool elem_found = cv_.wait_for(lock, timeout,
+        [=] { return !queue_.empty(); });
+    std::pair<bool, value_type> result{};
+    if (elem_found) {
+      result.first = true;
+      result.second = std::move(queue_.front());
+      queue_.pop();
+    }
+    return result;
+  }
+
 private:
   std::queue<T> queue_;
   std::mutex mutex_;
