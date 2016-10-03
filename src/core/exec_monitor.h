@@ -20,11 +20,17 @@ public:
 
   virtual ~exec_monitor() = default;
 
+  /** Initializes the execution monitor. */
   void initialize();
+
+  /** Finalizes the execution monitor. */
   void finalize();
 
-  void before_exec();
-  void after_exec();
+  /** Prepares the execution monitor.
+   *
+   * Once the execution is ready to start, this method allows the execution
+   * monitor to become ready to monitor the execution. */
+  void prepare();
 
   /** Starts the execution monitor. */
   void start();
@@ -42,8 +48,7 @@ protected:
 
   virtual void initialize_impl() {}
   virtual void finalize_impl() {}
-  virtual void before_exec_impl() {}
-  virtual void after_exec_impl() {}
+  virtual void prepare_impl() {}
 
   /** Method that should be implemented in derived monitors with the actual
    * logic that will monitor the execution.

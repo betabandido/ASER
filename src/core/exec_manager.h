@@ -39,8 +39,9 @@ protected:
     execution_ended_ = true;
   }
 
+  void prepare_exec_monitor();
   void start_exec_monitor();
-  void join_exec_monitor();
+  void stop_exec_monitor();
 
 private:
   typedef std::unique_ptr<exec_monitor> exec_monitor_ptr;

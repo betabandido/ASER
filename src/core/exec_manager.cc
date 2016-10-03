@@ -21,12 +21,17 @@ void exec_manager::start() {
   start_impl();
 }
 
+void exec_manager::prepare_exec_monitor() {
+  exec_monitor_->prepare();
+}
+
 void exec_manager::start_exec_monitor() {
   exec_monitor_->start();
 }
 
-void exec_manager::join_exec_monitor() {
+void exec_manager::stop_exec_monitor() {
   exec_monitor_->join();
+  exec_monitor_->finalize();
 }
 
 } // namespace aser

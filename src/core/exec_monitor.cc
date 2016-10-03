@@ -21,14 +21,9 @@ void exec_monitor::finalize() {
   finalize_impl();
 }
 
-void exec_monitor::before_exec() {
+void exec_monitor::prepare() {
   assert(initialized_);
-  before_exec_impl();
-}
-
-void exec_monitor::after_exec() {
-  assert(initialized_);
-  after_exec_impl();
+  prepare_impl();
 }
 
 void exec_monitor::start() {

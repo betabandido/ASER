@@ -35,13 +35,15 @@ void simple_manager::start_impl() {
   for (auto& p : processes_)
     monitor.add_process(p);
 
+  prepare_exec_monitor(); 
+
   for (auto& p : processes_)
     p->start();
 
   start_exec_monitor();
   monitor.wait_for_any();
   execution_end();
-  join_exec_monitor();
+  stop_exec_monitor();
 
   LOG("Cleaning up");
 
