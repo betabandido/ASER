@@ -43,6 +43,8 @@ protected:
   void start_exec_monitor();
   void stop_exec_monitor();
 
+  void notify_process_creation(pid_t pid);
+
 private:
   typedef std::unique_ptr<exec_monitor> exec_monitor_ptr;
 

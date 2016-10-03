@@ -34,5 +34,11 @@ void exec_manager::stop_exec_monitor() {
   exec_monitor_->finalize();
 }
 
+void exec_manager::notify_process_creation(pid_t pid) {
+  exec_monitor_->enqueue_event(
+      {exec_event::event_type::PROCESS_CREATED, pid}
+  );
+}
+
 } // namespace aser
 

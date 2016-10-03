@@ -62,6 +62,7 @@ void simple_manager::prepare_bench(const benchmark& bench) {
   LOG(boost::format("Preparing bench %1%") % bench.id);
   auto process = std::make_shared<util::process>(bench.args);
   process->prepare();
+  notify_process_creation(process->pid());
   processes_[bench.id] = std::move(process);
 }
 
