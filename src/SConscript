@@ -3,17 +3,23 @@ import os
 common_files = Glob('core/*.cc') \
   + Glob('exec_manager/*.cc') \
   + Glob('exec_monitor/*.cc') \
+  + Glob('perf/*.cc') \
   + Glob('util/*.cc')
-
-if 'TRAVIS' not in os.environ:
-  common_files += Glob('perf/*.cc')
 
 if 'test' in COMMAND_LINE_TARGETS:
   Import('test_env')
   src_files = Glob('test/*.cc') \
     + common_files
   test_env.Program('aser_test', src_files)
-  test = test_env.Command('phony', 'aser_test', './test/aser_test')
+
+  gtest_filter = '*'
+  if 'TRAVIS' in os.environ:
+    gtest_filter += ':-event_manager.*'
+
+  test = test_env.Command(
+      'phony',
+      'aser_test',
+      './test/aser_test --gtest_filter={}'.format(gtest_filter))
   AlwaysBuild(test)
 else:
   Import('env')
