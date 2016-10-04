@@ -1,5 +1,5 @@
-#ifndef UTIL_PERF_H_
-#define UTIL_PERF_H_
+#ifndef PERF_PERF_H_
+#define PERF_PERF_H_
 
 #include <unistd.h>
 
@@ -161,5 +161,5 @@ private:
 } // namespace perf
 } // namespace aser
 
-#endif // UTIL_PERF_H_
+#endif // PERF_PERF_H_
 
