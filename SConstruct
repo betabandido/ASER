@@ -21,13 +21,38 @@ if 'CXX' in os.environ:
 def configure(env):
   conf = Configure(env)
 
-  if not conf.CheckLib('boost_system'):
+  if not conf.CheckLib('boost_system', language='cxx'):
     print 'Could not find boost::system'
     Exit(1)
 
   if not conf.CheckLibWithHeader(
       'boost_filesystem', 'boost/filesystem.hpp', 'cxx'):
     print 'Could not find boost::filesystem'
+    Exit(1)
+
+  if not conf.CheckLibWithHeader(
+      'boost_atomic', 'boost/atomic.hpp', 'cxx'):
+    print 'Could not find boost::atomic'
+    Exit(1)
+
+  if not conf.CheckLibWithHeader(
+      'boost_chrono', 'boost/chrono.hpp', 'cxx'):
+    print 'Could not find boost::chrono'
+    Exit(1)
+
+  if not conf.CheckLibWithHeader(
+      'boost_thread', 'boost/thread.hpp', 'cxx'):
+    print 'Could not find boost::thread'
+    Exit(1)
+
+  if not conf.CheckLibWithHeader(
+      'boost_date_time', 'boost/date_time.hpp', 'cxx'):
+    print 'Could not find boost::date_time'
+    Exit(1)
+
+  if not conf.CheckLibWithHeader(
+      'boost_regex', 'boost/regex.hpp', 'cxx'):
+    print 'Could not find boost::regex'
     Exit(1)
 
   if not conf.CheckLibWithHeader(
