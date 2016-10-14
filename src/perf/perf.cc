@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include <util/libc_wrapper.h>
+#include <util/log.h>
 
 namespace aser {
 namespace perf {
@@ -24,6 +25,7 @@ const uint64_t generic_events::instructions = static_cast<uint64_t>(0);
 
 event::event(event_info info)
   : info_(std::move(info))
+  , prev_{0, 0, 0}
 {}
 
 event::~event() {
@@ -75,6 +77,9 @@ event::sample event::scale(read_mode mode) {
   auto value = count_[count_field::RAW_VALUE];
   auto enabled = count_[count_field::TIME_ENABLED];
   auto running = count_[count_field::TIME_RUNNING];
+
+  LOG(boost::format("value: %1%, enabled: %2%, running: %3%")
+      % value % enabled % running);
 
   if (mode == read_mode::RELATIVE) {
     value -= prev_[count_field::RAW_VALUE];
