@@ -35,8 +35,6 @@ private:
 
   void loop_impl() final;
 
-  void event_handler_impl(const exec_event& event) final;
-
   /** Adds a new process.
    *
    * @param pid The pid of the process.

@@ -33,7 +33,13 @@ simple_monitor::simple_monitor(
   , sampling_interval_{
         chrono::milliseconds(properties.get<unsigned>(
             "exec_monitor.sampling_length"))}
-{}
+{
+  register_event_handler(
+      exec_event::event_type::PROCESS_CREATED,
+      [&](const exec_event& event) {
+        add_process(event.pid);
+      });
+}
 
 void simple_monitor::loop_impl() {
   std::this_thread::sleep_for(sampling_interval_);
@@ -50,18 +56,6 @@ void simple_monitor::loop_impl() {
     auto& instrs = events[1];
     if (cycles.enabled && instrs.enabled)
       LOG(boost::format("IPC: %1%") % (instrs.value / cycles.value));
-  }
-}
-
-// TODO we might want to move the event_handler to exec_monitor,
-// and let subclasses register to handle certain types of events.
-void simple_monitor::event_handler_impl(const exec_event& event) {
-  using event_type = exec_event::event_type;
-
-  switch (event.type) {
-  case event_type::PROCESS_CREATED:
-    add_process(event.pid);
-    break;
   }
 }
 

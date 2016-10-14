@@ -25,21 +25,17 @@ cpu_hopper::cpu_hopper(
         chrono::milliseconds(properties.get<unsigned>(
             "exec_monitor.sampling_length"))}
   , allocated_cpus_(std::thread::hardware_concurrency(), false)
-{}
+{
+  register_event_handler(
+      exec_event::event_type::PROCESS_CREATED,
+      [&](const exec_event& event) {
+        add_process(event.pid);
+      });
+}
 
 void cpu_hopper::loop_impl() {
   std::this_thread::sleep_for(sampling_interval_);
   hop_processes();
-}
-
-void cpu_hopper::event_handler_impl(const exec_event& event) {
-  using event_type = exec_event::event_type;
-
-  switch (event.type) {
-  case event_type::PROCESS_CREATED:
-    add_process(event.pid);
-    break;
-  }
 }
 
 void cpu_hopper::add_process(pid_t pid) {

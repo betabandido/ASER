@@ -51,7 +51,14 @@ void exec_monitor::event_handler(const exec_event& event) {
   LOG(boost::format("Processing event (type: %1%, pid: %2%)")
       % static_cast<int>(event.type)
       % event.pid);
-  event_handler_impl(event);
+  auto it = event_handlers_.find(event.type);
+  if (it == end(event_handlers_)) {
+    LOG("No handler registered");
+    return;
+  }
+
+  auto& func = it->second;
+  func(event);
 }
 
 void exec_monitor::join() {
@@ -61,6 +68,13 @@ void exec_monitor::join() {
 
 void exec_monitor::enqueue_event(exec_event event) {
   event_queue_.push(std::move(event));
+}
+
+void exec_monitor::register_event_handler(
+    const exec_event::event_type& type,
+    const event_handler_func& func) {
+  auto res = event_handlers_.emplace(type, func);
+  assert(res.second);
 }
 
 } // namespace aser
