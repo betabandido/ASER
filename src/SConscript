@@ -16,6 +16,7 @@ if 'test' in COMMAND_LINE_TARGETS:
   if 'TRAVIS' in os.environ:
     gtest_filter += ':-event_manager.*'
 
+  test_env['ENV']['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '')
   test = test_env.Command(
       'phony',
       'aser_test',
