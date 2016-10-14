@@ -18,6 +18,12 @@ if 'BOOST_PATH' in os.environ:
 if 'CXX' in os.environ:
   env.Replace(CXX = os.environ['CXX'])
 
+def check_boost_lib(conf, name):
+  if not conf.CheckLibWithHeader(
+      'boost_{}'.format(name), 'boost/{}.hpp'.format(name), 'cxx'):
+    print 'Could not find boost::{}'.format(name)
+    Exit(1)
+
 def configure(env):
   conf = Configure(env)
 
@@ -25,40 +31,17 @@ def configure(env):
     print 'Could not find boost::system'
     Exit(1)
 
-  if not conf.CheckLibWithHeader(
-      'boost_filesystem', 'boost/filesystem.hpp', 'cxx'):
-    print 'Could not find boost::filesystem'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_atomic', 'boost/atomic.hpp', 'cxx'):
-    print 'Could not find boost::atomic'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_chrono', 'boost/chrono.hpp', 'cxx'):
-    print 'Could not find boost::chrono'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_thread', 'boost/thread.hpp', 'cxx'):
-    print 'Could not find boost::thread'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_date_time', 'boost/date_time.hpp', 'cxx'):
-    print 'Could not find boost::date_time'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_regex', 'boost/regex.hpp', 'cxx'):
-    print 'Could not find boost::regex'
-    Exit(1)
-
-  if not conf.CheckLibWithHeader(
-      'boost_program_options', 'boost/program_options.hpp', 'cxx'):
-    print 'Could not find boost::program_options'
-    Exit(1)
+  boost_libs = [
+      'atomic',
+      'chrono',
+      'date_time',
+      'filesystem',
+      'program_options',
+      'regex',
+      'thread'
+  ]
+  for lib in boost_libs:
+    check_boost_lib(conf, lib)
 
   # check for either boost-log or boost-log-mt
   if not conf.CheckLibWithHeader(
