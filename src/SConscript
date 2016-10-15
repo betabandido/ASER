@@ -20,7 +20,7 @@ if 'test' in COMMAND_LINE_TARGETS:
   test = test_env.Command(
       'phony',
       'aser_test',
-      './test/aser_test --gtest_filter={}'.format(gtest_filter))
+      'find test -name "*.gcda" -delete && ./test/aser_test --gtest_filter={}'.format(gtest_filter))
   AlwaysBuild(test)
 else:
   Import('env')
