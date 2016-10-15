@@ -4,7 +4,6 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include <core/exec_monitor.h>
-#include <perf/perf.h>
 
 namespace aser {
 
@@ -15,10 +14,8 @@ public:
       const boost::property_tree::ptree& properties);
 
 private:
-  /** Interval between samples. */
+  /** Interval between calls to loop_impl(). */
   std::chrono::milliseconds sampling_interval_;
-
-  std::vector<perf::event_manager> event_managers_;
 
   void loop_impl() final;
 
