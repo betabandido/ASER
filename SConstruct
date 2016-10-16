@@ -1,4 +1,5 @@
 import os
+from subprocess import call
 import sys
 
 env = Environment(CXXFLAGS='-std=c++14 -O2',
@@ -8,9 +9,6 @@ env = Environment(CXXFLAGS='-std=c++14 -O2',
 def add_path(env, path):
   env.Append(CPPPATH = [os.path.join(path, 'include')])
   env.Append(LIBPATH = [os.path.join(path, 'lib')])
-
-if 'GTEST_PATH' in os.environ:
-  add_path(env, os.environ['GTEST_PATH'])
 
 if 'BOOST_PATH' in os.environ:
   add_path(env, os.environ['BOOST_PATH'])
@@ -76,23 +74,30 @@ def configure(env):
 
   return conf.Finish()
 
-def configure_test(env):
-  """Configures the environment for the test target."""
-  conf = Configure(env)
-  if not conf.CheckLibWithHeader(
-      'gtest', 'gtest/gtest.h', 'cxx'):
-    print 'Could not find Google Test'
-    Exit(1)
-  return conf.Finish()
-
 if not env.GetOption('clean'):
   env = configure(env)
 
+def clone_googletest():
+  """Clones googletest git repository."""
+  call(['git', 'clone', 'https://github.com/google/googletest.git'])
+
 if 'test' in COMMAND_LINE_TARGETS:
+  clone_googletest()
   test_env = env.Clone()
-  test_env = configure_test(test_env)
   test_env.Replace(CXXFLAGS = '-std=c++14 -g -O0 --coverage')
   test_env.Replace(LINKFLAGS = '-g -O0 --coverage')
+
+  gtest_path = '#googletest/googletest'
+  gmock_path = '#googletest/googlemock'
+  test_env.Append(CPPPATH = [
+      gtest_path,
+      gmock_path,
+      os.path.join(gtest_path, 'include'),
+      os.path.join(gmock_path, 'include')])
+  test_env.Append(
+      LIBS = ['gmock'],
+      LIBPATH = ['.'])
+
   SConscript('src/SConscript', variant_dir='test', duplicate=False, exports='test_env')
 else:
   SConscript('src/SConscript', variant_dir='build', duplicate=False, exports='env')

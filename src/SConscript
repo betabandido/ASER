@@ -8,9 +8,19 @@ common_files = Glob('core/*.cc') \
 
 if 'test' in COMMAND_LINE_TARGETS:
   Import('test_env')
+
+  gtest_path = '#googletest/googletest'
+  gmock_path = '#googletest/googlemock'
+  gmock_lib = test_env.Library('gmock', [
+      '{}/src/gtest-all.cc'.format(gtest_path),
+      '{}/src/gmock-all.cc'.format(gmock_path)
+  ])
+
   src_files = Glob('test/*.cc') \
     + common_files
-  test_env.Program('aser_test', src_files)
+  aser_test = test_env.Program('aser_test', src_files)
+
+  test_env.Requires(aser_test, gmock_lib)
 
   gtest_filter = '*'
   if 'TRAVIS' in os.environ:
