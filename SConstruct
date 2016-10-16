@@ -41,7 +41,7 @@ def check_boost_lib(conf, name, header = None):
   if not conf.CheckLibWithHeader(
       'boost_{}-mt'.format(name), header, 'cxx'):
     if not conf.CheckLibWithHeader(
-        'boost_{}', header, 'cxx'):
+        'boost_{}'.format(name), header, 'cxx'):
       print 'Could not find boost::{}'.format(name)
       Exit(1)
 
