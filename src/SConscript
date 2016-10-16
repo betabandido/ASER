@@ -1,14 +1,36 @@
+import os
+
 common_files = Glob('core/*.cc') \
   + Glob('exec_manager/*.cc') \
   + Glob('exec_monitor/*.cc') \
+  + Glob('perf/*.cc') \
   + Glob('util/*.cc')
 
 if 'test' in COMMAND_LINE_TARGETS:
   Import('test_env')
+
+  gtest_path = '#googletest/googletest'
+  gmock_path = '#googletest/googlemock'
+  gmock_lib = test_env.Library('gmock', [
+      '{}/src/gtest-all.cc'.format(gtest_path),
+      '{}/src/gmock-all.cc'.format(gmock_path)
+  ])
+
   src_files = Glob('test/*.cc') \
     + common_files
-  test_env.Program('aser_test', src_files)
-  test = test_env.Command('phony', 'aser_test', './test/aser_test')
+  aser_test = test_env.Program('aser_test', src_files)
+
+  test_env.Requires(aser_test, gmock_lib)
+
+  gtest_filter = '*'
+  if 'TRAVIS' in os.environ:
+    gtest_filter += ':-event_manager.*'
+
+  test_env['ENV']['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '')
+  test = test_env.Command(
+      'phony',
+      'aser_test',
+      'find test -name "*.gcda" -delete && ./test/aser_test --gtest_filter={}'.format(gtest_filter))
   AlwaysBuild(test)
 else:
   Import('env')

@@ -43,5 +43,6 @@ ASER requires a relatively recent compiler with C++14 support. `CXX` flag can be
 - [Boost](http://www.boost.org)
 - [Google Test](https://github.com/google/googletest) (for testing purposes only)
 
-The building process uses [SCons](http://scons.org). If the required libraries are installed in default locations, just running SCons on the root directory will build ASER. Otherwise, `BOOST_PATH` and `GTEST_PATH` flags should be used to specify the paths were Boost and Google Test are installed. The resulting binary will be placed in a directory named `build`. In order to build and run the test cases, use `scons test` instead.
+The building process uses [SCons](http://scons.org). If the required libraries are installed in default locations, just running SCons on the root directory will build ASER. Otherwise, `BOOST_PATH` flag should be used to specify the path were Boost is installed. The resulting binary will be placed in a directory named `build`. In order to build and run the test cases, use `scons test` instead.
 
+Following the advice in the documentation, Google Test is downloaded into a directory named 'googletest'. Doing so prevents issues when the compiler used to compile Google Test and ASER are not the same.

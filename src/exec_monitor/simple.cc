@@ -22,12 +22,19 @@ simple_monitor::simple_monitor(
   , sampling_interval_{
         chrono::milliseconds(properties.get<unsigned>(
             "exec_monitor.sampling_length"))}
-{}
+{
+  register_event_handler(
+      exec_event::event_type::PROCESS_CREATED,
+      [&](const exec_event& event) {
+        add_process(event.pid);
+      });
+}
 
 void simple_monitor::loop_impl() {
   std::this_thread::sleep_for(sampling_interval_);
-  LOG("loop_impl");
 }
+
+void simple_monitor::add_process(pid_t pid) {}
 
 } // namespace aser
 

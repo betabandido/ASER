@@ -3,6 +3,8 @@
 
 #include <unistd.h>
 
+#include <functional>
+#include <map>
 #include <thread>
 
 #include <core/exec_event.h>
@@ -54,8 +56,8 @@ public:
   void event_handler(const exec_event& event);
 
 protected:
-  /** Event queue. */
-  util::concurrent_queue<exec_event> event_queue_;
+  /** Function definition for an event handler. */
+  typedef std::function<void(const exec_event&)> event_handler_func;
 
   virtual void initialize_impl() {}
   virtual void finalize_impl() {}
@@ -66,18 +68,37 @@ protected:
    */
   virtual void loop_impl() = 0;
 
-  virtual void event_handler_impl(const exec_event& event) {}
+  /** Registers and event handler.
+    *
+    * @param type Event type.
+    * @param func Handler function.
+    */
+  void register_event_handler(
+      const exec_event::event_type& type,
+      const event_handler_func& func);
 
 private:
+  /** Associated exec_manager. */
   exec_manager& exec_manager_;
+
+  /** Indicates whether initialize() has been called. */
   bool initialized_ { false };
+
+  /** Handle for the thread that runs the loop implementation. */
   std::thread thread_;
+
+  /** Event queue. */
+  util::concurrent_queue<exec_event> event_queue_;
+
+  /** Event handlers. */
+  std::map<exec_event::event_type, event_handler_func> event_handlers_;
 
   exec_monitor(const exec_monitor&) = delete;
   exec_monitor(exec_monitor&&) = delete;
   exec_monitor& operator=(const exec_monitor&) = delete;
   exec_monitor& operator=(exec_monitor&&) = delete;
 
+  /** Processes pending events. */
   void process_events();
 };
 
