@@ -45,7 +45,7 @@ void pmc_sampler::loop_impl() {
   std::this_thread::sleep_for(sampling_interval_);
 
   for (auto& mgr : event_managers_) {
-    auto& events = mgr.read_events(event::read_mode::RELATIVE);
+    auto& events = mgr.read_events(event_read_mode::RELATIVE);
     for (auto& e : events)
       LOG(boost::format("enabled: %1%, count: %2%, scaling: %3%")
           % e.enabled % e.value % e.scaling);
