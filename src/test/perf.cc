@@ -50,31 +50,36 @@ TEST(event_test, running_is_larger) {
   );
 }
 
-TEST(event_test, aggregated) {
-  using testing::InSequence;
-  using testing::Return;
-  using testing::_;
+class event_N_reads_test : public ::testing::Test {
+protected:
+  virtual void SetUp() override {
+    using testing::InSequence;
+    using testing::Return;
+    using testing::_;
 
-  event_info info = {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
-  pid_t pid = 1000;
-  std::array<uint64_t, 3> count = {2000, 1000, 1000};
-  constexpr unsigned iterations = 5;
-
-  mock_event_impl impl;
-  EXPECT_CALL(impl, open(_, pid, true))
-    .Times(1);
-  {
-    InSequence s;
-    auto aggregated_count = count;
-    for (int i = 1; i <= iterations; ++i) {
-      EXPECT_CALL(impl, read())
-        .WillOnce(Return(aggregated_count));
-      aggregated_count[0] += count[0];
-      aggregated_count[1] += count[1];
-      aggregated_count[2] += count[2];
+    EXPECT_CALL(impl, open(_, pid, true))
+      .Times(1);
+    {
+      InSequence s;
+      auto aggregated_count = count;
+      for (int i = 1; i <= iterations; ++i) {
+        EXPECT_CALL(impl, read())
+          .WillOnce(Return(aggregated_count));
+        aggregated_count[0] += count[0];
+        aggregated_count[1] += count[1];
+        aggregated_count[2] += count[2];
+      }
     }
   }
 
+  mock_event_impl impl;
+  event_info info {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
+  pid_t pid {1000};
+  std::array<uint64_t, 3> count {2000, 1000, 1000};
+  unsigned iterations {5};
+};
+
+TEST_F(event_N_reads_test, aggregated) {
   event<mock_event_impl> event{info, std::move(impl)};
   event.open(pid, true);
 
@@ -87,31 +92,7 @@ TEST(event_test, aggregated) {
   }
 }
 
-TEST(event_test, relative) {
-  using testing::InSequence;
-  using testing::Return;
-  using testing::_;
-
-  event_info info = {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
-  pid_t pid = 1000;
-  std::array<uint64_t, 3> count = {2000, 1000, 1000};
-  constexpr int iterations = 5;
-
-  mock_event_impl impl;
-  EXPECT_CALL(impl, open(_, pid, true))
-    .Times(1);
-  {
-    InSequence s;
-    auto aggregated_count = count;
-    for (int i = 1; i <= iterations; ++i) {
-      EXPECT_CALL(impl, read())
-        .WillOnce(Return(aggregated_count));
-      aggregated_count[0] += count[0];
-      aggregated_count[1] += count[1];
-      aggregated_count[2] += count[2];
-    }
-  }
-
+TEST_F(event_N_reads_test, relative) {
   event<mock_event_impl> event{info, std::move(impl)};
   event.open(pid, true);
 
