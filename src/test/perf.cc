@@ -75,7 +75,7 @@ protected:
   mock_event_impl impl;
   event_info info {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
   pid_t pid {1000};
-  std::array<uint64_t, 3> count {2000, 1000, 1000};
+  std::array<uint64_t, 3> count {{2000, 1000, 1000}};
   unsigned iterations {5};
 };
 
