@@ -13,7 +13,7 @@ perf_linux_impl::~perf_linux_impl() {
     close();
 }
 
-void perf_linux_impl::open(const event_info& info, pid_t, bool attach) {
+void perf_linux_impl::open(const event_info& info, pid_t pid, bool attach) {
   perf_event_attr attr;
   memset(&attr, 0, sizeof(attr));
   attr.config = info.code;
@@ -42,15 +42,14 @@ void perf_linux_impl::open(const event_info& info, pid_t, bool attach) {
       "Error opening the event");
 }
 
-void perf_linux_impl::close() {
+void perf_linux_impl::close() noexcept {
   try {
     util::error_if_not_equal(
-        close(fd_),
+        ::close(fd_),
         0,
         "Error closing the event");
   } catch (const std::exception& e) {
-    // TODO add some common mechanism for "safe" logging in destructors.
-    std::cout << e.what() << "\n";
+    // TODO log this (in a safe way)
   }
 }
 
