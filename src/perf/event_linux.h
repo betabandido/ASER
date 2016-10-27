@@ -10,11 +10,11 @@
 namespace aser {
 namespace perf {
 
-class perf_linux_impl {
+class event_linux_impl {
 public:
   using count_type = std::array<uint64_t, 3>;
 
-  ~perf_linux_impl();
+  ~event_linux_impl();
 
   void open(const event_info& info, pid_t pid, bool attach);
   void close() noexcept;

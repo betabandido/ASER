@@ -8,7 +8,7 @@
 namespace aser {
 namespace perf {
 
-class perf_dummy_impl {
+class event_dummy_impl {
 public:
   using count_type = std::array<uint64_t, 3>;
 

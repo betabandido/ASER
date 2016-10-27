@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <array>
+#include <string>
 
 namespace aser {
 namespace perf {
@@ -37,9 +38,16 @@ struct event_info {
 
 /** Generic hardware events. */
 struct generic_events {
-  static const uint64_t cycles;
-  static const uint64_t instructions;
+  const uint64_t cycles;
+  const uint64_t instructions;
 };
+
+/** Returns the generic events for a given event implementation.
+ *
+ * @param type Event implementation name.
+ * @return The generic events associated to the given implementation.
+ */
+generic_events create_generic_events(const std::string& impl_name);
 
 /** Read mode for the event.
  *

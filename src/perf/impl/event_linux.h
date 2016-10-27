@@ -8,12 +8,12 @@
 namespace aser {
 namespace perf {
 
-perf_linux_impl::~perf_linux_impl() {
+event_linux_impl::~event_linux_impl() {
   if (fd_ != 0)
     close();
 }
 
-void perf_linux_impl::open(const event_info& info, pid_t pid, bool attach) {
+void event_linux_impl::open(const event_info& info, pid_t pid, bool attach) {
   perf_event_attr attr;
   memset(&attr, 0, sizeof(attr));
   attr.config = info.code;
@@ -42,7 +42,7 @@ void perf_linux_impl::open(const event_info& info, pid_t pid, bool attach) {
       "Error opening the event");
 }
 
-void perf_linux_impl::close() noexcept {
+void event_linux_impl::close() noexcept {
   try {
     util::error_if_not_equal(
         ::close(fd_),
@@ -53,7 +53,7 @@ void perf_linux_impl::close() noexcept {
   }
 }
 
-perf_linux_impl::count_type perf_linux_impl::read() {
+event_linux_impl::count_type event_linux_impl::read() {
   count_type count;
   util::error_if_not_equal(
       ::read(fd_, count.data(), sizeof(count)),
