@@ -17,7 +17,7 @@ util::registar<
     exec_monitor,
     pmc_sampler<event_manager<event<event_linux_impl>>>,
     exec_manager&, const pt::ptree&>
-  pmc_sampler_registar("pmc-sampler[linux]");
+  pmc_sampler_linux_registar("pmc-sampler[linux]");
 
 #endif
 
@@ -25,7 +25,7 @@ util::registar<
     exec_monitor,
     pmc_sampler<event_manager<event<event_dummy_impl>>>,
     exec_manager&, const pt::ptree&>
-  pmc_sampler_registar("pmc-sampler[dummy]");
+  pmc_sampler_dummy_registar("pmc-sampler[dummy]");
 
 } // namespace aser
 
