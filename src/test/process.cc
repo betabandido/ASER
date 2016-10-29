@@ -12,7 +12,53 @@ using aser::util::process;
 
 namespace {
 
-TEST(pipe, read_write) {
+TEST(pipe_test, is_open) {
+  using aser::util::pipe;
+
+  pipe p;
+  EXPECT_TRUE(p.is_open(pipe::end_point::READ_END)
+      && p.is_open(pipe::end_point::WRITE_END));
+
+  p.close(pipe::end_point::READ_END);
+  EXPECT_TRUE(!p.is_open(pipe::end_point::READ_END));
+
+  p.close(pipe::end_point::WRITE_END);
+  EXPECT_TRUE(!p.is_open(pipe::end_point::WRITE_END));
+}
+
+TEST(pipe_test, cannot_read_from_closed_pipe) {
+  using aser::util::pipe;
+
+  pipe p;
+  p.close(pipe::end_point::READ_END);
+  char buf;
+  EXPECT_THROW(p.read(&buf, 1), std::runtime_error);
+}
+
+TEST(pipe_test, cannot_write_to_closed_pipe) {
+  using aser::util::pipe;
+
+  pipe p;
+  p.close(pipe::end_point::WRITE_END);
+  char buf;
+  EXPECT_THROW(p.write(&buf, 1), std::runtime_error);
+}
+
+TEST(pipe_test, move_semantics) {
+  using aser::util::pipe;
+
+  pipe p;
+  EXPECT_TRUE(p.is_open(pipe::end_point::READ_END)
+      && p.is_open(pipe::end_point::WRITE_END));
+
+  pipe q{std::move(p)};
+  EXPECT_TRUE(q.is_open(pipe::end_point::READ_END)
+      && q.is_open(pipe::end_point::WRITE_END));
+  EXPECT_TRUE(!p.is_open(pipe::end_point::READ_END)
+      && !p.is_open(pipe::end_point::WRITE_END));
+}
+
+TEST(pipe_test, read_write) {
   aser::util::pipe p;
 
   auto read = [&]() {

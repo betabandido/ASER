@@ -16,8 +16,15 @@ namespace fs = boost::filesystem;
 namespace aser {
 namespace util {
 
+//////////
+// pipe //
+//////////
+
 pipe::pipe() {
-  error_if_not_equal(::pipe(&fd_[0]), 0, "Error creating pipe");
+  error_if_not_equal(
+      ::pipe(&fd_[0]),
+      0,
+      "Error creating pipe");
 }
 
 pipe::pipe(int flags) {
@@ -40,17 +47,28 @@ pipe& pipe::operator=(pipe&& other) {
   other.fd_ = {{ -1, -1 }};
   return *this;
 }
+
+bool pipe::is_open(end_point ep) const {
+  auto idx = static_cast<unsigned>(ep);
+  return fd_[idx] != -1;
+}
       
 void pipe::close(end_point ep) {
-  auto idx = static_cast<unsigned>(ep);
-  if (fd_[idx] == -1)
+  if (!is_open(ep))
     return;
 
-  error_if_not_equal(::close(fd_[idx]), 0, "Error closing pipe");
+  auto idx = static_cast<unsigned>(ep);
+  error_if_not_equal(
+      ::close(fd_[idx]),
+      0,
+      "Error closing pipe");
   fd_[idx] = -1;
 }
 
 size_t pipe::read(char* buffer, size_t nbyte) {
+  if (!is_open(end_point::READ_END))
+    throw std::runtime_error("Cannot read from closed pipe");
+
   return static_cast<size_t>(error_if_equal(
       ::read(fd_[0], buffer, nbyte),
       static_cast<ssize_t>(-1),
@@ -58,11 +76,18 @@ size_t pipe::read(char* buffer, size_t nbyte) {
 }
 
 size_t pipe::write(const char* buffer, size_t nbyte) {
+  if (!is_open(end_point::WRITE_END))
+    throw std::runtime_error("Cannot write to closed pipe");
+
   return static_cast<size_t>(error_if_equal(
       ::write(fd_[1], buffer, nbyte),
       static_cast<ssize_t>(-1),
       "Error writing to pipe"));
 }
+
+/////////////
+// process //
+/////////////
 
 process::~process() {
   try {

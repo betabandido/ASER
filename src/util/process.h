@@ -2,7 +2,6 @@
 #define UTIL_PROCESS_H_
 
 #include <fcntl.h>
-#include <sched.h>
 #include <unistd.h>
 
 #include <array>
@@ -36,10 +35,18 @@ public:
   ~pipe();
 
   // Moving is allowed, but not copying.
-  pipe(const pipe& other) = delete;
   pipe(pipe&& other);
-  pipe& operator=(const pipe& other) = delete;
   pipe& operator=(pipe&& other);
+
+  pipe(const pipe& other) = delete;
+  pipe& operator=(const pipe& other) = delete;
+
+  /** Checks whether the given endpoint is open.
+   *
+   * @param ep Endpoint to check.
+   * @return True if the endpoint is open; false otherwise.
+   */
+  bool is_open(end_point ep) const;
 
   /** Closes and endpoint.
    *
