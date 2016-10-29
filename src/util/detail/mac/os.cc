@@ -12,7 +12,7 @@ void pipe2(int fd[2], int flags) {
   error_if_not_equal(
       ::pipe(fd),
       0,
-      "Error at pipe");
+      "Error creating pipe");
 
   for (int i = 0; i < 2; ++i) {
     auto fcntl_flags = error_if_equal(
@@ -20,10 +20,11 @@ void pipe2(int fd[2], int flags) {
         -1,
         "Error getting flags");
 
+    if (flags & ~O_CLOEXEC)
+      throw std::invalid_argument("Flags not supported");
+
     if (flags & O_CLOEXEC)
       fcntl_flags |= FD_CLOEXEC;
-    else
-      throw std::invalid_argument("Flags not supported");
 
     error_if_equal(
         fcntl(fd[i], F_SETFD, fcntl_flags),
