@@ -9,6 +9,7 @@ namespace aser {
 namespace util {
 
 void libc_error(const std::string& msg);
+void libc_error(int error_code, const std::string& msg);
 
 /** Throws an error if result is equal to error_result.
  *

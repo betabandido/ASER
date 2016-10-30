@@ -5,6 +5,10 @@
 
 #include <util/libc_wrapper.h>
 
+#ifndef __APPLE__
+#error This file must only be included in OS X builds.
+#endif
+
 namespace aser {
 namespace util {
 
@@ -31,6 +35,10 @@ void pipe2(int fd[2], int flags) {
         -1,
         "Error settings flags");
   }
+}
+
+void bind_process(pid_t pid, unsigned cpu) {
+  throw std::logic_error("bind_process() is not supported on this platform");
 }
 
 } // namespace util
