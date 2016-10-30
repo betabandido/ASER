@@ -235,5 +235,27 @@ TEST(process, kill_tree) {
   EXPECT_FALSE(boost::filesystem::exists(tmp_path));
 }
 
+TEST(sync_process, basic) {
+  using namespace std::chrono_literals;
+  namespace fs = boost::filesystem;
+  using aser::util::sync_process;
+
+  auto tmp_path = fs::temp_directory_path();
+  tmp_path /= fs::unique_path();
+  auto cmd = boost::str(
+      boost::format("echo process_started > %1%") % tmp_path);
+  sync_process p("/bin/bash", "-c", cmd);
+  p.prepare();
+  std::this_thread::sleep_for(1s);
+  EXPECT_FALSE(fs::exists(tmp_path));
+
+  p.start();
+  p.wait();
+  EXPECT_TRUE(fs::exists(tmp_path));
+
+  boost::system::error_code ec;
+  fs::remove(tmp_path);
+}
+
 } // namespace
 
