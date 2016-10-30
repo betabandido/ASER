@@ -115,7 +115,8 @@ public:
    */
   template<typename... Args>
   process(std::string&& path, Args&&... args)
-    : process{std::vector<std::string>{std::move(path), std::forward<Args>(args)...}}
+    : process{std::vector<std::string>{
+        std::move(path), std::forward<Args>(args)...}}
   {}
 
   process(std::vector<std::string> args, Config config = Config{})
@@ -201,7 +202,8 @@ class sync_process {
 public:
   template<typename... Args>
   sync_process(std::string&& path, Args&&... args)
-    : sync_process{std::vector<std::string>{std::move(path), std::forward<Args>(args)...}}
+    : sync_process{std::vector<std::string>{
+        std::move(path), std::forward<Args>(args)...}}
   {}
 
   sync_process(std::vector<std::string> args);
