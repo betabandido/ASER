@@ -157,7 +157,6 @@ void sync_process::start() {
   char buf = 0;
   go_pipe_.write(&buf, 1);
   go_pipe_.close(pipe::end_point::WRITE_END);
-  on_hold_ = false;
 }
 
 void sync_process::wait() {

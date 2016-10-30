@@ -245,9 +245,6 @@ private:
   /** Pipe to notify the parent that the children is ready to call exec(). */
   pipe child_ready_pipe_;
 
-  /** Whether the execution is on hold, waiting for start() to be called. */
-  bool on_hold_ { true };
-
   void wait_for_parent();
   void wait_for_child();
 };
