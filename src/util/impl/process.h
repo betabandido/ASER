@@ -1,3 +1,5 @@
+#include <sys/wait.h>
+
 #include <boost/filesystem.hpp>
 
 #include <util/kill.h>
@@ -61,7 +63,7 @@ void process<Config>::wait() {
   assert(!terminated());
 
   error_if_equal(
-      waitpid(pid_, &termination_status_, 0),
+      ::waitpid(pid_, &termination_status_, 0),
       -1,
       "Error waiting for process");
 
