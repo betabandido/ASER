@@ -1,10 +1,17 @@
 import os
+import sys
 
 common_files = Glob('core/*.cc') \
   + Glob('exec_manager/*.cc') \
   + Glob('exec_monitor/*.cc') \
   + Glob('perf/*.cc') \
   + Glob('util/*.cc')
+
+if 'linux' in sys.platform:
+  common_files += Glob('util/detail/linux/*.cc')
+
+if 'darwin' in sys.platform:
+  common_files += Glob('util/detail/mac/*.cc')
 
 if 'test' in COMMAND_LINE_TARGETS:
   Import('test_env')

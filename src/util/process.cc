@@ -3,46 +3,22 @@
 #include <cassert>
 #include <sys/wait.h>
 
-#include <boost/filesystem.hpp>
-#include <boost/format.hpp>
-
-#include "kill.h"
 #include "libc_wrapper.h"
 #include "log.h"
-
-namespace fs = boost::filesystem;
+#include "os.h"
 
 namespace aser {
 namespace util {
 
-static void pipe2(int fd[2], int flags) {
-#ifdef __linux__
-  error_if_not_equal(::pipe2(fd, flags), 0, "Error at pipe2");
-#elif defined __APPLE__
-  error_if_not_equal(::pipe(fd), 0, "Error at pipe");
-  for (int i = 0; i < 2; ++i) {
-    auto fcntl_flags = error_if_equal(
-        fcntl(fd[i], F_GETFD),
-        -1,
-        "Error getting flags");
-
-    if (flags & O_CLOEXEC)
-      fcntl_flags |= FD_CLOEXEC;
-    else
-      throw std::invalid_argument("Flags not supported");
-
-    error_if_equal(
-        fcntl(fd[i], F_SETFD, fcntl_flags),
-        -1,
-        "Error settings flags");
-  }
-#else
-  #error pipe2 is not supported
-#endif
-}
+//////////
+// pipe //
+//////////
 
 pipe::pipe() {
-  error_if_not_equal(::pipe(&fd_[0]), 0, "Error creating pipe");
+  error_if_not_equal(
+      ::pipe(&fd_[0]),
+      0,
+      "Error creating pipe");
 }
 
 pipe::pipe(int flags) {
@@ -65,17 +41,28 @@ pipe& pipe::operator=(pipe&& other) {
   other.fd_ = {{ -1, -1 }};
   return *this;
 }
+
+bool pipe::is_open(end_point ep) const {
+  auto idx = static_cast<unsigned>(ep);
+  return fd_[idx] != -1;
+}
       
 void pipe::close(end_point ep) {
-  auto idx = static_cast<unsigned>(ep);
-  if (fd_[idx] == -1)
+  if (!is_open(ep))
     return;
 
-  error_if_not_equal(::close(fd_[idx]), 0, "Error closing pipe");
+  auto idx = static_cast<unsigned>(ep);
+  error_if_not_equal(
+      ::close(fd_[idx]),
+      0,
+      "Error closing pipe");
   fd_[idx] = -1;
 }
 
 size_t pipe::read(char* buffer, size_t nbyte) {
+  if (!is_open(end_point::READ_END))
+    throw std::runtime_error("Cannot read from closed pipe");
+
   return static_cast<size_t>(error_if_equal(
       ::read(fd_[0], buffer, nbyte),
       static_cast<ssize_t>(-1),
@@ -83,164 +70,117 @@ size_t pipe::read(char* buffer, size_t nbyte) {
 }
 
 size_t pipe::write(const char* buffer, size_t nbyte) {
+  if (!is_open(end_point::WRITE_END))
+    throw std::runtime_error("Cannot write to closed pipe");
+
   return static_cast<size_t>(error_if_equal(
       ::write(fd_[1], buffer, nbyte),
       static_cast<ssize_t>(-1),
       "Error writing to pipe"));
 }
 
-process::~process() {
-  try {
-    LOG("process::~process()");
+////////////////////
+// process_config //
+////////////////////
 
-    if (state_ == exec_state::READY
-        || state_ == exec_state::RUNNING)
-      kill();
-
-    if (state_ == exec_state::KILLED)
-      wait();
-  }
-  catch (...) {}
+void process_config::fork_setup() {
+  if (fork_setup_callback_)
+    fork_setup_callback_();
 }
 
-void process::prepare() {
-  assert(state_ == exec_state::NON_INITIALIZED);
-
-  LOG(boost::format("Executing %1%") % args_[0]);
-
-  fs::path path(args_[0]);
-  if (!fs::exists(path))
-    throw std::runtime_error(boost::str(boost::format("File %1% does not exist")
-        % path
-        ));
-
-  std::vector<char*> args(args_.size() + 1, nullptr);
-  std::transform(begin(args_), end(args_), begin(args),
-      [](const std::string& s) { return const_cast<char*>(s.c_str()); });
-  assert(args.back() == nullptr);
-
-  pipe child_ready_pipe;
-
-  auto pid = fork();
-  char buf;
-
-  switch (pid) {
-  case -1:
-    libc_error("Error at fork");
-    break;
-  case 0:
-    // XXX creating a new process group allows kill_group to work safely.
-    // We might want to explore other alternatives, though.
-    setpgid(getpid(), 0);
-    child_ready_pipe.close(pipe::end_point::READ_END);
-    go_pipe_.close(pipe::end_point::WRITE_END);
-    child_ready_pipe.close(pipe::end_point::WRITE_END);
-    go_pipe_.read(&buf, 1);
-
-    LOG("About to call execvp");
-    execvp(args[0], &args[0]);
-
-    // We are not supposed to reach here. Doing so, means execvp() failed.
-    libc_error("execvp failed");
-  default:
-    child_ready_pipe.close(pipe::end_point::WRITE_END);
-    go_pipe_.close(pipe::end_point::READ_END);
-    child_ready_pipe.read(&buf, 1);
-    child_ready_pipe.close(pipe::end_point::READ_END);
-    pid_ = pid;
-    state_ = exec_state::READY;
-    break;
-  }
+process_config& process_config::fork_setup(callback_func func) {
+  fork_setup_callback_ = func;
+  return *this;
 }
 
-void process::start() {
-  assert(state_ == exec_state::READY);
+void process_config::fork_error(int error_code) {
+  if (fork_error_callback_)
+    fork_error_callback_(error_code);
+}
 
-  LOG(boost::format("Starting process %1%") % pid_);
+process_config& process_config::fork_error(error_callback_func func) {
+  fork_error_callback_ = func;
+  return *this;
+}
 
+void process_config::exec_setup() {
+  if (exec_setup_callback_)
+    exec_setup_callback_();
+}
+
+process_config& process_config::exec_setup(callback_func func) {
+  exec_setup_callback_ = func;
+  return *this;
+}
+
+void process_config::exec_error(int error_code) {
+  if (exec_error_callback_)
+    exec_error_callback_(error_code);
+}
+
+process_config& process_config::exec_error(error_callback_func func) {
+  exec_error_callback_ = func;
+  return *this;
+}
+
+void process_config::fork_success() {
+  if (fork_success_callback_)
+    fork_success_callback_();
+}
+
+process_config& process_config::fork_success(callback_func func) {
+  fork_success_callback_ = func;
+  return *this;
+}
+
+//////////////////
+// sync_process //
+//////////////////
+
+sync_process::sync_process(std::vector<std::string> args)
+  : process_{std::move(args)}
+  , go_pipe_{O_CLOEXEC}
+{
+  process_.config()
+    .exec_setup([&]() { wait_for_parent(); })
+    .fork_success([&]() { wait_for_child(); })
+    .fork_error([](int error_code) { libc_error(error_code, "Error forking process"); })
+    .exec_error([](int error_code) { libc_error(error_code, "Exec failed"); });
+}
+
+void sync_process::prepare() {
+  process_.start();
+}
+
+void sync_process::start() {
+  assert(process_.started());
   char buf = 0;
   go_pipe_.write(&buf, 1);
   go_pipe_.close(pipe::end_point::WRITE_END);
-  state_ = exec_state::RUNNING;
 }
 
-void process::wait() {
-  assert(state_ == exec_state::READY
-      || state_ == exec_state::RUNNING
-      || state_ == exec_state::KILLED);
-
-  LOG(boost::format("Waiting for process %1%") % pid_);
-
-  error_if_equal(
-      waitpid(pid_, &termination_status_, 0),
-      -1,
-      "Error waiting for process");
-
-  LOG(boost::format("Process %1% has finished") % pid_);
-
-  if (WIFEXITED(termination_status_)
-      || WIFSIGNALED(termination_status_)) {
-    state_ = exec_state::JOINED;
-    //pid_ = -1;
-  }
+void sync_process::wait() {
+  process_.wait();
 }
 
-int process::termination_status() const {
-  if (state_ != exec_state::JOINED)
-    throw std::runtime_error("Process not terminated");
-
-  return termination_status_;
+void sync_process::wait_for_parent() {
+  // XXX creating a new process group allows kill_group to work safely.
+  // We might want to explore other alternatives, though.
+  setpgid(getpid(), 0);
+  char buf;
+  child_ready_pipe_.close(pipe::end_point::READ_END);
+  go_pipe_.close(pipe::end_point::WRITE_END);
+  child_ready_pipe_.write(&buf, 1);
+  child_ready_pipe_.close(pipe::end_point::WRITE_END);
+  go_pipe_.read(&buf, 1);
 }
 
-void process::kill() {
-  // XXX There are situations where it is handy not to throw an exception if
-  // a process has already been killed/joined -- for instance when a processes
-  // completes its execution, and then we proceed to kill all managed threads
-  // for cleanup purposes. But it might just be better to throw the exception
-  // anyway, and force the caller to catch the exception.
-  if (state_ == exec_state::KILLED
-      || state_ == exec_state::JOINED)
-    return;
-
-  if (state_ == exec_state::NON_INITIALIZED)
-    throw std::runtime_error("Process cannot be killed");
-
-  LOG(boost::format("Killing process %1%") % pid_);
-
-  // State is changed before trying to kill the process, since recovering
-  // from an error when trying to kill a process is difficult. Even if kill()
-  // or kill_group() fail, we consider the process to be killed.
-  // TODO Is there a better way to do this?
-  state_ = exec_state::KILLED;
-
-  switch (kill_mode_) {
-    case kill_mode::PROC:
-    util::kill(pid_);
-    break;
-    case kill_mode::TREE:
-    util::kill_group(pid_);
-    break;
-  default:
-    assert(false);
-  }
-}
-
-void bind_process(pid_t pid, unsigned cpu) {
-#ifdef __linux__
-  cpu_set_t mask;
-  CPU_ZERO(&mask);
-  CPU_SET(cpu, &mask);
-  error_if_equal(
-      sched_setaffinity(pid, sizeof(mask), &mask),
-      -1,
-      "Error binding process to CPU");
-#else
-  throw std::runtime_error("bind_process() is not supported");
-#endif
-}
-
-void bind_process(const process& p, unsigned cpu) {
-  bind_process(p.pid(), cpu);
+void sync_process::wait_for_child() {
+  char buf;
+  child_ready_pipe_.close(pipe::end_point::WRITE_END);
+  go_pipe_.close(pipe::end_point::READ_END);
+  child_ready_pipe_.read(&buf, 1);
+  child_ready_pipe_.close(pipe::end_point::READ_END);
 }
 
 } // namespace util

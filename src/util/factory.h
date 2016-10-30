@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+#include <boost/format.hpp>
+
 namespace aser {
 namespace util {
 
@@ -45,7 +47,10 @@ public:
    */
   std::unique_ptr<Base> create(const std::string& id, Args&&... args) {
     auto it = creators_.find(id);
-    assert(it != end(creators_));
+    if (it == end(creators_)) {
+      throw std::invalid_argument(
+          boost::str(boost::format("Invalid id: %1%") % id));
+    }
     return it->second->create(std::forward<Args>(args)...);
   }
 

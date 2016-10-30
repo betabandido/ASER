@@ -35,7 +35,7 @@ private:
   std::string s_;
 };
 
-TEST(factory, basic) {
+TEST(factory_test, basic) {
   registar<base, d1> d1_registar("d1");
   registar<base, d2, std::string> d2_registar("d2");
 
@@ -43,8 +43,8 @@ TEST(factory, basic) {
   EXPECT_EQ(create<base>("d2", std::string("arg"))->type(), "d2arg");
 }
 
-TEST(factory_death, not_registered) {
-  EXPECT_DEATH(create<base>("error"), "Assertion.*failed");
+TEST(factory_test, not_registered) {
+  EXPECT_THROW(create<base>("error"), std::invalid_argument);
 }
 
 } // namespace

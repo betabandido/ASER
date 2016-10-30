@@ -6,7 +6,7 @@
 #include <core/exec_manager.h>
 #include <util/factory.h>
 #include <util/log.h>
-#include <util/process.h>
+#include <util/os.h>
 
 namespace chrono = std::chrono;
 namespace pt = boost::property_tree;

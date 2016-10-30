@@ -79,7 +79,7 @@ if not env.GetOption('clean'):
 
 def clone_googletest():
   """Clones googletest git repository."""
-  call(['git', 'clone', 'https://github.com/google/googletest.git'])
+  call(['git', 'clone', 'https://github.com/betabandido/googletest.git'])
 
 if 'test' in COMMAND_LINE_TARGETS:
   clone_googletest()

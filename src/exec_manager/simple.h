@@ -8,7 +8,7 @@
 namespace aser {
 
 namespace util {
-class process;
+class sync_process;
 }
 
 /** Simple execution manager.
@@ -26,7 +26,8 @@ public:
   simple_manager(const boost::property_tree::ptree& properties);
 
 private:
-  typedef std::shared_ptr<util::process> process_ptr;
+  using process_type = aser::util::sync_process;
+  using process_ptr = std::shared_ptr<process_type>;
 
   std::vector<benchmark> benchs_;
   std::vector<process_ptr> processes_;

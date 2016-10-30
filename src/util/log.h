@@ -7,6 +7,7 @@
 #include <boost/log/trivial.hpp>
 
 #define LOG(x) BOOST_LOG_TRIVIAL(debug) << x
+#define LOGI(x) BOOST_LOG_TRIVIAL(info) << x
 
 #endif // UTIL_LOG_H_
 
