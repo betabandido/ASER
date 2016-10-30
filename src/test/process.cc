@@ -197,7 +197,7 @@ TEST(process_test, check_killed_process_termination_status) {
   using process = aser::util::process<aser::util::process_config>;
   process p("/usr/bin/env", "true");
   p.start();
-  kill_process(p);
+  aser::util::kill_process(p);
   p.wait();
   auto status = p.termination_status();
   EXPECT_TRUE(WIFSIGNALED(status));
@@ -206,12 +206,13 @@ TEST(process_test, check_killed_process_termination_status) {
 TEST(kill_process_death_test, process_must_have_started) {
   using process = aser::util::process<aser::util::process_config>;
   process p("/usr/bin/env", "true");
-  EXPECT_DEATH(kill_process(p), "");
+  EXPECT_DEATH(aser::util::kill_process(p), "");
 }
 
-#if 0
 TEST(process, kill_tree) {
   using namespace std::chrono_literals;
+  namespace util = aser::util;
+  using process = util::process<aser::util::process_config>;
   // The command creates a hierarchy of processes so that calling p.kill()
   // only kills the top process, not its children. When kill_mode::TREE is
   // used, however, all the children should die too.
@@ -222,18 +223,17 @@ TEST(process, kill_tree) {
   auto cmd = boost::str(boost::format(
         "/bin/bash -c '(sleep 2; echo kill_proc_failed > %1%)'") % tmp_path);
   process p("/bin/bash", "-c", cmd);
-  p.set_kill_mode(process::kill_mode::TREE);
-  p.prepare();
+  p.config()
+    .exec_setup([]() { setpgid(getpid(), 0); });
   p.start();
   std::this_thread::sleep_for(1s);
-  EXPECT_NO_THROW(p.kill());
+  EXPECT_NO_THROW(util::kill_process(p, util::kill_mode::TREE));
   p.wait();
   auto status = p.termination_status();
   EXPECT_TRUE(WIFSIGNALED(status));
   std::this_thread::sleep_for(2s);
   EXPECT_FALSE(boost::filesystem::exists(tmp_path));
 }
-#endif
 
 } // namespace
 
