@@ -31,7 +31,7 @@ void simple_manager::start_impl() {
   for (auto& b : benchs_)
     prepare_bench(b);
 
-  process_monitor monitor;
+  process_monitor<process_type> monitor;
   for (auto& p : processes_)
     monitor.add_process(p);
 
@@ -49,7 +49,7 @@ void simple_manager::start_impl() {
 
   for (auto& p : processes_) {
     try {
-      p->kill();
+      util::kill_process(*p);
     } catch (const std::exception& e) {
       LOG(e.what());
     } catch (...) {
@@ -60,7 +60,7 @@ void simple_manager::start_impl() {
 
 void simple_manager::prepare_bench(const benchmark& bench) {
   LOG(boost::format("Preparing bench %1%") % bench.id);
-  auto process = std::make_shared<util::process>(bench.args);
+  auto process = std::make_shared<process_type>(bench.args);
   process->prepare();
   notify_process_creation(process->pid());
   processes_[bench.id] = std::move(process);

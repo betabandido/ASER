@@ -7,14 +7,14 @@
 #include <util/process.h>
 
 using aser::process_monitor;
-using aser::util::process;
 using namespace std::literals::chrono_literals;
 namespace chrono = std::chrono;
 
 namespace {
 
 TEST(process_monitor, basic) {
-  process_monitor pm;
+  using process = aser::util::sync_process;
+  process_monitor<process> pm;
   auto p1 = std::make_shared<process>("/usr/bin/env", "sleep", "1");
   auto p2 = std::make_shared<process>("/usr/bin/env", "sleep", "2");
   p1->prepare();

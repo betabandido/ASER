@@ -220,6 +220,22 @@ public:
   /** Waits for process termination. */
   void wait();
 
+  bool started() const noexcept {
+    return process_.started();
+  }
+
+  bool terminated() const noexcept {
+    return process_.terminated();
+  }
+
+  pid_t pid() const noexcept {
+    return process_.pid();
+  }
+
+  int termination_status() const noexcept {
+    return process_.termination_status();
+  }
+
 private:
   process<process_config> process_;
 

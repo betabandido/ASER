@@ -10,16 +10,14 @@
 
 namespace aser {
 
-namespace util {
-class process;
-}
-
 /** Allows for monitoring a set of processes, and waiting for events such
  * as when a process ends its execution.
  */
+template<typename Process>
 class process_monitor {
 public:
-  typedef std::shared_ptr<util::process> process_ptr;
+  // TODO use a raw pointer?
+  typedef std::shared_ptr<Process> process_ptr;
 
   process_monitor() {}
 
@@ -60,6 +58,8 @@ private:
 };
 
 } // namespace aser
+
+#include <core/impl/process_monitor.h>
 
 #endif // CORE_PROCESS_MONITOR_H_
 
