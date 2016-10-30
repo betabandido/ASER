@@ -161,7 +161,6 @@ void sync_process::start() {
 }
 
 void sync_process::wait() {
-  assert(!on_hold_);
   process_.wait();
 }
 
@@ -172,6 +171,7 @@ void sync_process::wait_for_parent() {
   char buf;
   child_ready_pipe_.close(pipe::end_point::READ_END);
   go_pipe_.close(pipe::end_point::WRITE_END);
+  child_ready_pipe_.write(&buf, 1);
   child_ready_pipe_.close(pipe::end_point::WRITE_END);
   go_pipe_.read(&buf, 1);
 }
