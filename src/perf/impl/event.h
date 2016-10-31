@@ -28,11 +28,15 @@ event_sample event<Impl>::scale(event_read_mode mode) {
   auto enabled = count_[count_field::TIME_ENABLED];
   auto running = count_[count_field::TIME_RUNNING];
 
-  if (running > enabled)
-    throw std::runtime_error("event ran for longer than it was enabled");
-
   LOG(boost::format("value: %1%, enabled: %2%, running: %3%")
       % value % enabled % running);
+
+  if (running > enabled)
+    throw std::runtime_error("Event ran for longer than it was enabled");
+
+  if (running == 0
+      && value != prev_[count_field::RAW_VALUE])
+    throw std::runtime_error("Unexpected event value");
 
   if (mode == event_read_mode::RELATIVE) {
     value -= prev_[count_field::RAW_VALUE];
