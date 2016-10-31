@@ -9,9 +9,8 @@ namespace {
 
 class base {
 public:
-  virtual std::string type() const {
-    return "base";
-  }
+  virtual ~base() {}
+  virtual std::string type() const = 0;
 };
 
 class d1 : public base {
