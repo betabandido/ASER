@@ -37,6 +37,8 @@ pipe::pipe(pipe&& other)
 }
 
 pipe& pipe::operator=(pipe&& other) {
+  close(end_point::READ_END);
+  close(end_point::WRITE_END);
   fd_ = std::move(other.fd_);
   other.fd_ = {{ -1, -1 }};
   return *this;

@@ -43,18 +43,46 @@ TEST(pipe_test, cannot_write_to_closed_pipe) {
   EXPECT_THROW(p.write(&buf, 1), std::runtime_error);
 }
 
-TEST(pipe_test, move_semantics) {
+TEST(pipe_test, move_constructor) {
   using aser::util::pipe;
 
   pipe p;
   EXPECT_TRUE(p.is_open(pipe::end_point::READ_END)
       && p.is_open(pipe::end_point::WRITE_END));
+  p.write("foo", 3);
 
   pipe q{std::move(p)};
   EXPECT_TRUE(q.is_open(pipe::end_point::READ_END)
       && q.is_open(pipe::end_point::WRITE_END));
   EXPECT_TRUE(!p.is_open(pipe::end_point::READ_END)
       && !p.is_open(pipe::end_point::WRITE_END));
+
+  char buf[4] = {0};
+  q.read(buf, 3);
+  EXPECT_STREQ(buf, "foo");
+}
+
+TEST(pipe_test, move_assignment) {
+  using aser::util::pipe;
+
+  pipe p;
+  pipe q;
+  EXPECT_TRUE(p.is_open(pipe::end_point::READ_END)
+      && p.is_open(pipe::end_point::WRITE_END));
+  EXPECT_TRUE(q.is_open(pipe::end_point::READ_END)
+      && q.is_open(pipe::end_point::WRITE_END));
+
+  p.write("foo", 3);
+
+  q = std::move(p);
+  EXPECT_TRUE(!p.is_open(pipe::end_point::READ_END)
+      && !p.is_open(pipe::end_point::WRITE_END));
+  EXPECT_TRUE(q.is_open(pipe::end_point::READ_END)
+      && q.is_open(pipe::end_point::WRITE_END));
+
+  char buf[4] = {0};
+  q.read(buf, 3);
+  EXPECT_STREQ(buf, "foo");
 }
 
 TEST(pipe_test, read_write) {
