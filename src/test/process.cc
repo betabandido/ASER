@@ -237,6 +237,14 @@ TEST(kill_process_death_test, process_must_have_started) {
   EXPECT_DEATH(aser::util::kill_process(p), "");
 }
 
+TEST(kill_process_death_test, wrong_kill_mode) {
+  using process = aser::util::process<aser::util::process_config>;
+  process p("/usr/bin/env", "true");
+  p.start();
+  auto wrong_mode = static_cast<aser::util::kill_mode>(-1);
+  EXPECT_DEATH(aser::util::kill_process(p, wrong_mode), "");
+}
+
 TEST(process, kill_tree) {
   using namespace std::chrono_literals;
   namespace util = aser::util;
