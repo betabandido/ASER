@@ -7,7 +7,6 @@ template<typename Impl>
 event<Impl>::event(event_info info, Impl impl)
   : info_{std::move(info)}
   , impl_{std::move(impl)}
-  , prev_{0, 0, 0}
 {
   assert(valid_modifiers(info.modifiers));
 }
