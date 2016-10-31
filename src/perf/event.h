@@ -132,7 +132,7 @@ private:
   count_type count_;
 
   /** Previous counter values. */
-  count_type prev_;
+  count_type prev_ {{0, 0, 0}};
 
   static bool valid_modifiers(uint8_t modifiers);
 };

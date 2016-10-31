@@ -12,6 +12,16 @@ namespace chrono = std::chrono;
 
 namespace {
 
+TEST(process_monitor, process_cannot_be_added_twice) {
+  using process = aser::util::sync_process;
+  process_monitor<process> pm;
+  auto p1 = std::make_shared<process>("/usr/bin/env", "true");
+  p1->prepare();
+  pm.add_process(p1);
+  EXPECT_THROW(pm.add_process(p1), std::invalid_argument);
+  p1->start();
+}
+
 TEST(process_monitor, basic) {
   using process = aser::util::sync_process;
   process_monitor<process> pm;

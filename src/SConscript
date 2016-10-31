@@ -8,7 +8,8 @@ common_files = Glob('core/*.cc') \
   + Glob('util/*.cc')
 
 if 'linux' in sys.platform:
-  common_files += Glob('util/detail/linux/*.cc')
+  common_files += Glob('util/detail/linux/*.cc') \
+    + Glob('perf/detail/linux/*.cc')
 
 if 'darwin' in sys.platform:
   common_files += Glob('util/detail/mac/*.cc')

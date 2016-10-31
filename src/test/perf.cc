@@ -50,6 +50,52 @@ TEST(event_test, running_is_larger) {
   );
 }
 
+TEST(event_test, count_must_be_zero_if_not_running) {
+  using testing::Return;
+  using testing::_;
+
+  event_info info = {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
+  pid_t pid = 1000;
+  std::array<uint64_t, 3> count = {1000, 0, 0};
+
+  mock_event_impl impl;
+  EXPECT_CALL(impl, open(_, pid, true))
+    .Times(1);
+  EXPECT_CALL(impl, read())
+    .WillOnce(Return(count));
+
+  event<mock_event_impl> event{info, std::move(impl)};
+  event.open(pid, true);
+  event.read();
+  EXPECT_THROW(
+      event.scale(event_read_mode::AGGREGATED),
+      std::runtime_error
+  );
+}
+
+TEST(event_test, event_is_disabled) {
+  using testing::Return;
+  using testing::_;
+
+  event_info info = {event_type::HARDWARE, 0, event_modifiers::EXCLUDE_NONE};
+  pid_t pid = 1000;
+  std::array<uint64_t, 3> count = {0, 0, 0};
+
+  mock_event_impl impl;
+  EXPECT_CALL(impl, open(_, pid, true))
+    .Times(1);
+  EXPECT_CALL(impl, read())
+    .WillOnce(Return(count));
+
+  event<mock_event_impl> event{info, std::move(impl)};
+  event.open(pid, true);
+  event.read();
+  auto result = event.scale(event_read_mode::AGGREGATED);
+  EXPECT_DOUBLE_EQ(result.value, 0);
+  EXPECT_DOUBLE_EQ(result.scaling, 0);
+  EXPECT_FALSE(result.enabled);
+}
+
 class event_N_reads_test : public ::testing::Test {
 protected:
   virtual void SetUp() override {
